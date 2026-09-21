@@ -1,0 +1,280 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+interface RecommendedCrop {
+  cropNameEn: string;
+  cropNameNe: string;
+  varietyNameNe: string;
+  commodityCode: string;
+  canonicalUnit: string;
+  maturityDaysRange: [number, number];
+  expectedHarvestMonth: number;
+  historicalMedianPrice: number;
+  seasonalAdvantagePct: number | null;
+  dailyVolatilityPct: number | null;
+  annualVariabilityPct: number | null;
+  confidenceScore: number;
+  confidenceTierNe: string;
+  explanationNe: string;
+}
+
+interface InsufficientDataCrop {
+  cropNameNe: string;
+  varietyNameNe: string;
+  reason: string;
+}
+
+interface PlanResults {
+  context: {
+    district: string;
+    plantingMonth: number;
+  };
+  cohort_a: RecommendedCrop[];
+  cohort_b: RecommendedCrop[];
+  cohort_c: RecommendedCrop[];
+  cohort_d: InsufficientDataCrop[];
+  hasRecommendations: boolean;
+}
+
+const BS_MONTHS = [
+  { id: 1, name: "बैशाख (Baisakh)" },
+  { id: 2, name: "जेठ (Jestha)" },
+  { id: 3, name: "असार (Ashad)" },
+  { id: 4, name: "साउन (Shrawan)" },
+  { id: 5, name: "भदौ (Bhadra)" },
+  { id: 6, name: "असोज (Ashwin)" },
+  { id: 7, name: "कार्तिक (Kartik)" },
+  { id: 8, name: "मंसिर (Mangsir)" },
+  { id: 9, name: "पुस (Poush)" },
+  { id: 10, name: "माघ (Magh)" },
+  { id: 11, name: "फागुन (Falgun)" },
+  { id: 12, name: "चैत (Chaitra)" },
+];
+
+export default function PlanPage() {
+  const [district, setDistrict] = useState("jhapa");
+  const [irrigation, setIrrigation] = useState("IRRIGATED");
+  const [month, setMonth] = useState("6"); // Default Ashwin
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<PlanResults | null>(null);
+
+  async function handleAnalyze() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          district_slug: district,
+          irrigation_status: irrigation,
+          planting_month: month,
+        }),
+      });
+      const data: PlanResults = await res.json();
+      setResults(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      {/* Header */}
+      <header className="border-b bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          <Link href="/" className="text-sm font-semibold text-emerald-800 hover:text-emerald-950 flex items-center gap-1">
+            ← गृहपृष्ठ (Home)
+          </Link>
+          <span className="text-xs font-medium px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
+            🌱 बाली योजना सहायक
+          </span>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+        {/* Hero Title */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+            यस पटक कुन बाली लगाउने? (What Should I Grow?)
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            तपाईंको ठेगाना, सिँचाइको अवस्था र बाली लगाउने महिना छान्नुहोस्। प्रणालीले ऐतिहासिक बजार तथ्याङ्कको आधारमा उपयुक्त बाली सिफारिस गर्नेछ।
+          </p>
+        </div>
+
+        {/* Wizard Input Form Card */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {/* Step 1: District */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                १. जिल्ला छान्नुहोस् (District)
+              </label>
+              <select
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+                className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+              >
+                <option value="jhapa">झापा (Jhapa - तराई)</option>
+                <option value="kathmandu">काठमाडौं (Kathmandu - उपत्यका)</option>
+                <option value="kaski">कास्की (Kaski - पहाड)</option>
+                <option value="dhanusha">धनुषा (Dhanusha - तराई)</option>
+              </select>
+            </div>
+
+            {/* Step 2: Irrigation */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                २. सिँचाइको सुविधा (Irrigation)
+              </label>
+              <select
+                value={irrigation}
+                onChange={(e) => setIrrigation(e.target.value)}
+                className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+              >
+                <option value="IRRIGATED">पर्याप्त सिँचाइ (Irrigated)</option>
+                <option value="SEMI_IRRIGATED">आंशिक सिँचाइ (Semi-Irrigated)</option>
+                <option value="RAINFED">आकाशे पानीको भर (Rainfed)</option>
+              </select>
+            </div>
+
+            {/* Step 3: Planting Month */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                ३. बाली रोप्ने महिना (Planting Month)
+              </label>
+              <select
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+                className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+              >
+                {BS_MONTHS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button
+            onClick={handleAnalyze}
+            disabled={loading}
+            className="w-full sm:w-auto px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm disabled:opacity-50"
+          >
+            {loading ? "विश्लेषण गर्दैछ..." : "अवसर विश्लेषण गर्नुहोस् (Analyze Opportunities) ➔"}
+          </button>
+        </div>
+
+        {/* Results Section */}
+        {results && (
+          <div className="space-y-6 pt-2">
+            <div className="border-b pb-3 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">
+                विश्लेषण नतिजा ({results.context.district} • महिना: {BS_MONTHS.find(m => m.id === results.context.plantingMonth)?.name})
+              </h2>
+            </div>
+
+            {/* Cohort A */}
+            {results.cohort_a?.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                  <h3 className="font-bold text-emerald-900 text-sm">
+                    {"समूह 'क': उत्कृष्ट कृषि अनुकूलता + बलियो ऐतिहासिक प्रमाण (Optimal Agronomy + Strong Market Evidence)"}
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {results.cohort_a.map((item: RecommendedCrop, i: number) => (
+                    <div key={i} className="bg-white border-2 border-emerald-500/30 rounded-2xl p-5 shadow-sm space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+                        <div>
+                          <h4 className="text-xl font-bold text-slate-900">
+                            {item.cropNameNe} <span className="text-sm font-normal text-slate-500">({item.varietyNameNe})</span>
+                          </h4>
+                          <span className="text-xs text-slate-500">
+                            बाली अवधि: {item.maturityDaysRange[0]}–{item.maturityDaysRange[1]} दिन • कोड: #{item.commodityCode}
+                          </span>
+                        </div>
+                        <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
+                          🟢 उत्तम अवसर
+                        </span>
+                      </div>
+
+                      {/* Numbers Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                        <div className="bg-slate-50 p-3 rounded-lg border">
+                          <span className="text-xs text-slate-500">अनुमानित उत्पादन महिना</span>
+                          <div className="font-bold text-slate-800 mt-0.5">
+                            {BS_MONTHS.find(m => m.id === item.expectedHarvestMonth)?.name.split(" ")[0]}
+                          </div>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-lg border">
+                          <span className="text-xs text-slate-500">ऐतिहासिक औसत मूल्य</span>
+                          <div className="font-bold text-emerald-700 font-mono mt-0.5">
+                            रु. {item.historicalMedianPrice.toFixed(2)}/kg
+                          </div>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-lg border">
+                          <span className="text-xs text-slate-500">मौसमी मूल्य फाइदा</span>
+                          <div className="font-bold text-emerald-700 mt-0.5">
+                            {item.seasonalAdvantagePct ? `+${item.seasonalAdvantagePct}%` : "—"}
+                          </div>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-lg border">
+                          <span className="text-xs text-slate-500">दैनिक उतारचढाव</span>
+                          <div className="font-bold text-amber-600 mt-0.5 font-mono">
+                            {item.dailyVolatilityPct ? `${item.dailyVolatilityPct}%` : "—"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Explainability Box */}
+                      <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3.5 text-xs text-emerald-900 leading-relaxed">
+                        <strong>किन सिफारिस गरियो?</strong> {item.explanationNe}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Cohort D (Secondary Accordion) */}
+            {results.cohort_d?.length > 0 && (
+              <div className="bg-slate-100/80 rounded-xl p-4 border border-slate-200 space-y-2">
+                <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  अन्य कृषि अनुकूल बालीहरू (तर बजार तथ्याङ्क अपर्याप्त रहेको)
+                </h4>
+                <div className="divide-y divide-slate-200 text-xs">
+                  {results.cohort_d.map((d: InsufficientDataCrop, idx: number) => (
+                    <div key={idx} className="py-2 flex items-center justify-between text-slate-700">
+                      <span>• {d.cropNameNe} ({d.varietyNameNe})</span>
+                      <span className="text-slate-400 italic">{d.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* If no recommendations found */}
+            {!results.hasRecommendations && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center space-y-2">
+                <h3 className="font-bold text-amber-900">
+                  छनोट गरिएको महिनामा उपयुक्त सिफारिस भेटिएन
+                </h3>
+                <p className="text-xs text-amber-700 max-w-md mx-auto">
+                  तपाईंले छान्नुभएको महिनामा धेरैजसो बालीहरू सिजन बाहिर पर्छन्। कृपया असोज वा फागुन महिना छानेर हेर्नुहोस्।
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

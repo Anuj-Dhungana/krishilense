@@ -51,11 +51,23 @@ export default async function Home() {
               <p className="text-xs text-slate-500">कृषि बजार मूल्य सूचना तथा निर्णय प्रणाली</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3 text-sm">
-            <span className="hidden sm:inline-block px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full font-medium border border-emerald-200">
-              🟢 आजको बजार सक्रिय
-            </span>
-          </div>
+          <nav className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm font-medium">
+            <Link href="/" className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 font-semibold">
+              दैनिक बजार
+            </Link>
+            <Link
+              href="/plan"
+              className="px-3 py-1.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-slate-100 transition-colors"
+            >
+              🌱 के रोप्ने?
+            </Link>
+            <Link
+              href="/compare"
+              className="px-3 py-1.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-slate-100 transition-colors"
+            >
+              📊 बजार तुलना
+            </Link>
+          </nav>
         </div>
       </header>
 
@@ -73,6 +85,14 @@ export default async function Home() {
             <p className="text-emerald-100 text-sm sm:text-base">
               नेपालका प्रमुख कृषि थोक बजारहरूको दैनिक मूल्य, ऐतिहासिक मौसमी चक्र र बाली योजना निर्णय प्रणाली।
             </p>
+            <div className="pt-2">
+              <Link
+                href="/plan"
+                className="inline-block px-5 py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 font-bold rounded-xl text-xs sm:text-sm shadow transition-colors"
+              >
+                🎯 आफ्नो जग्गा अनुसार बाली सिफारिस हेर्नुहोस् (What to Grow) ➔
+              </Link>
+            </div>
           </div>
         </section>
 
