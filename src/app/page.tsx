@@ -111,10 +111,17 @@ export default async function Home() {
                     prices.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/75 transition-colors">
                         <td className="py-3 px-4 font-medium text-slate-900">
-                          {item.commodity_name_ne}
-                          <span className="block text-xs font-normal text-slate-500">
-                            {item.commodity_name_en} (#{item.commodity_code})
-                          </span>
+                          <Link
+                            href={`/commodity/${item.commodity_code}`}
+                            className="hover:text-emerald-700 hover:underline flex flex-col"
+                          >
+                            <span className="font-semibold text-emerald-950 hover:text-emerald-700">
+                              {item.commodity_name_ne}
+                            </span>
+                            <span className="text-xs font-normal text-slate-500">
+                              {item.commodity_name_en} (#{item.commodity_code}) ➔
+                            </span>
+                          </Link>
                         </td>
                         <td className="py-3 px-4 text-slate-600">{item.category_ne}</td>
                         <td className="py-3 px-4 text-slate-600">{item.canonical_unit}</td>
