@@ -85,31 +85,6 @@ export default async function Home({
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Top Header */}
-      <header className="border-b bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🌾</span>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-emerald-800">KrishiLens Nepal</h1>
-              <p className="text-xs text-slate-500">कृषि बजार मूल्य सूचना तथा निर्णय प्रणाली</p>
-            </div>
-          </div>
-          
-          <nav className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm font-medium">
-            <Link href="/" className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 font-semibold">
-              दैनिक बजार
-            </Link>
-            <Link href="/plan" className="px-3 py-1.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-slate-100 transition-colors">
-              🌱 के रोप्ने?
-            </Link>
-            <Link href="/compare" className="px-3 py-1.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-slate-100 transition-colors">
-              📊 बजार तुलना
-            </Link>
-          </nav>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
         {/* Hero Section */}

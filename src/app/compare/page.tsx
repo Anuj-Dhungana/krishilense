@@ -3,6 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+interface CommodityItem {
+  code: string;
+  nameNe: string;
+  nameEn: string;
+  categoryNe: string;
+  canonicalUnit: string;
+}
+
 interface MarketPrice {
   market_slug: string;
   market_name_ne: string;
@@ -29,19 +37,30 @@ interface CompareResponse {
   mandatory_disclaimer_ne?: string;
 }
 
-const COMMODITIES = [
-  { code: "101.1", name: "गोलभेंडा ठुलो (नेपाली) - Tomato" },
-  { code: "110.1", name: "काउली (स्थानीय) - Cauliflower" },
-  { code: "104.1", name: "रातो आलु (लाम्चो) - Red Potato" },
-  { code: "108.1", name: "बन्दा (लोकल) - Cabbage" },
-];
-
 export default function ComparePage() {
+  const [commoditiesList, setCommoditiesList] = useState<CommodityItem[]>([]);
   const [commodity, setCommodity] = useState("101.1");
   const [baseMarket, setBaseMarket] = useState("kalimati");
   const [data, setData] = useState<CompareResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 1. Fetch ALL registered commodities dynamically from Neon
+  useEffect(() => {
+    async function loadCommodities() {
+      try {
+        const res = await fetch("/api/commodities");
+        const json = await res.json();
+        if (json.success && json.data) {
+          setCommoditiesList(json.data);
+        }
+      } catch (err: unknown) {
+        console.error("Failed to load commodities list:", err);
+      }
+    }
+    loadCommodities();
+  }, []);
+
+  // 2. Fetch prices comparison whenever selected commodity or base market changes
   useEffect(() => {
     async function loadData() {
       setLoading(true);
@@ -49,7 +68,7 @@ export default function ComparePage() {
         const res = await fetch(`/api/prices/compare?commodity=${commodity}&base=${baseMarket}`);
         const json: CompareResponse = await res.json();
         setData(json);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error(err);
       } finally {
         setLoading(false);
@@ -58,49 +77,51 @@ export default function ComparePage() {
     loadData();
   }, [commodity, baseMarket]);
 
+  // Extract unique category names for grouped optgroups
+  const categories = Array.from(new Set(commoditiesList.map((c) => c.categoryNe)));
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Header */}
-      <header className="border-b bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-sm font-semibold text-emerald-800 hover:text-emerald-950 flex items-center gap-1">
-            ← गृहपृष्ठ (Home)
-          </Link>
-          <span className="text-xs font-medium px-2.5 py-1 bg-teal-50 text-teal-800 rounded-full border border-teal-200">
-            📊 क्षेत्रीय बजार तुलना
-          </span>
-        </div>
-      </header>
-
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
             बजार-बजार मूल्य तुलना (Regional Market Comparison)
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            विभिन्न कृषि थोक बजारहरूमा आजको संकलित मूल्य र आधार बजारसँगको मूल्य भिन्नता हेर्नुहोस्।
+            नेपालका १२ वटै थोक बजारहरूमा आजको संकलित थोक मूल्य र आधार बजारसँगको मूल्य भिन्नता हेर्नुहोस्।
           </p>
         </div>
 
         {/* Filter Controls */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Dynamic Commodity Selector */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              १. कृषि उपज छान्नुहोस् (Select Commodity)
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+              <span>१. कृषि उपज छान्नुहोस् (Select Commodity)</span>
+              <span className="text-[11px] font-normal text-emerald-700">
+                कुल उपलब्ध: {commoditiesList.length} बालीहरू
+              </span>
             </label>
             <select
               value={commodity}
               onChange={(e) => setCommodity(e.target.value)}
               className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"
             >
-              {COMMODITIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
+              {categories.map((cat) => (
+                <optgroup key={cat} label={`── ${cat} ──`}>
+                  {commoditiesList
+                    .filter((c) => c.categoryNe === cat)
+                    .map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.nameNe} ({c.nameEn}) - #{c.code}
+                      </option>
+                    ))}
+                </optgroup>
               ))}
             </select>
           </div>
 
+          {/* Base Benchmark Market */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
               २. तुलना गर्ने आधार बजार (Base Benchmark Market)
@@ -110,11 +131,32 @@ export default function ComparePage() {
               onChange={(e) => setBaseMarket(e.target.value)}
               className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"
             >
-              <option value="kalimati">कालिमाटी (Kathmandu - Base)</option>
-              <option value="pokhara">पोखरा (Pokhara)</option>
-              <option value="birtamod">बिर्तामोड (Birtamod)</option>
-              <option value="dharan">धरान (Dharan)</option>
-              <option value="butwal">बुटवल (Butwal)</option>
+              <optgroup label="बागमती प्रदेश">
+                <option value="kalimati">कालिमाटी (Kathmandu - Base)</option>
+                <option value="kamalamai">कमलामाई (Sindhuli)</option>
+              </optgroup>
+              <optgroup label="कोशी प्रदेश">
+                <option value="birtamod">बिर्तामोड (Jhapa)</option>
+                <option value="dharan">धरान (Sunsari)</option>
+              </optgroup>
+              <optgroup label="मधेश प्रदेश">
+                <option value="dhalkebar">ढल्केबर (Dhanusha)</option>
+                <option value="lalbandi">लालबन्दी (Sarlahi)</option>
+              </optgroup>
+              <optgroup label="गण्डकी प्रदेश">
+                <option value="pokhara">पोखरा (Kaski)</option>
+                <option value="kawasoti">कावासोती (Nawalpur)</option>
+              </optgroup>
+              <optgroup label="लुम्बिनी प्रदेश">
+                <option value="butwal">बुटवल (Rupandehi)</option>
+                <option value="kohalpur">कोहलपुर (Banke)</option>
+              </optgroup>
+              <optgroup label="कर्णाली प्रदेश">
+                <option value="birendranagar">वीरेन्द्रनगर (Surkhet)</option>
+              </optgroup>
+              <optgroup label="सुदूरपश्चिम प्रदेश">
+                <option value="attariya">अत्तरिया (Kailali)</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -123,7 +165,7 @@ export default function ComparePage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 bg-slate-100/75 border-b flex items-center justify-between">
             <h2 className="font-bold text-slate-800 text-sm">
-              {data?.commodity?.nameNe} — आजको संकलित थोक मूल्य विवरण
+              {data?.commodity?.nameNe} ({data?.commodity?.nameEn}) — आजको संकलित थोक मूल्य विवरण
             </h2>
             <span className="text-xs text-slate-500 font-mono">
               इकाइ: {data?.commodity?.canonicalUnit || "kg"}
@@ -144,8 +186,8 @@ export default function ComparePage() {
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400">
-                      लोड हुँदैछ...
+                    <td colSpan={5} className="py-12 text-center text-slate-400">
+                      मूल्य तथ्याङ्क लोड हुँदैछ...
                     </td>
                   </tr>
                 ) : (data?.data && data.data.length > 0) ? (
@@ -187,8 +229,8 @@ export default function ComparePage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-500">
-                      यस बालीको लागि अन्य बजारको तथ्याङ्क भेटिएन।
+                    <td colSpan={5} className="py-12 text-center text-slate-500">
+                      यस बालीको लागि बजार तथ्याङ्क भेटिएन।
                     </td>
                   </tr>
                 )}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 interface RecommendedCrop {
   cropNameEn: string;
@@ -83,18 +82,6 @@ export default function PlanPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Header */}
-      <header className="border-b bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-sm font-semibold text-emerald-800 hover:text-emerald-950 flex items-center gap-1">
-            ← गृहपृष्ठ (Home)
-          </Link>
-          <span className="text-xs font-medium px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
-            🌱 बाली योजना सहायक
-          </span>
-        </div>
-      </header>
-
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         {/* Hero Title */}
         <div>
@@ -119,10 +106,32 @@ export default function PlanPage() {
                 onChange={(e) => setDistrict(e.target.value)}
                 className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
               >
-                <option value="jhapa">झापा (Jhapa - तराई)</option>
-                <option value="kathmandu">काठमाडौं (Kathmandu - उपत्यका)</option>
-                <option value="kaski">कास्की (Kaski - पहाड)</option>
-                <option value="dhanusha">धनुषा (Dhanusha - तराई)</option>
+                <optgroup label="कोशी प्रदेश (Koshi)">
+                  <option value="jhapa">झापा (Jhapa - तराई)</option>
+                  <option value="sunsari">सुनसरी (Sunsari - तराई)</option>
+                </optgroup>
+                <optgroup label="मधेश प्रदेश (Madhesh)">
+                  <option value="dhanusha">धनुषा (Dhanusha - तराई)</option>
+                  <option value="sarlahi">सर्लाही (Sarlahi - तराई)</option>
+                </optgroup>
+                <optgroup label="बागमती प्रदेश (Bagmati)">
+                  <option value="kathmandu">काठमाडौं (Kathmandu - उपत्यका)</option>
+                  <option value="sindhuli">सिन्धुली (Sindhuli - भित्री पहाड)</option>
+                </optgroup>
+                <optgroup label="गण्डकी प्रदेश (Gandaki)">
+                  <option value="kaski">कास्की (Kaski - मध्यपहाड)</option>
+                  <option value="nawalpur">नवलपुर (Nawalpur - तराई)</option>
+                </optgroup>
+                <optgroup label="लुम्बिनी प्रदेश (Lumbini)">
+                  <option value="rupondehi">रुपन्देही (Rupandehi - तराई)</option>
+                  <option value="banke">बाँके (Banke - तराई)</option>
+                </optgroup>
+                <optgroup label="कर्णाली प्रदेश (Karnali)">
+                  <option value="surkhet">सुर्खेत (Surkhet - भित्री पहाड)</option>
+                </optgroup>
+                <optgroup label="सुदूरपश्चिम प्रदेश (Sudurpashchim)">
+                  <option value="kailali">कैलाली (Kailali - तराई)</option>
+                </optgroup>
               </select>
             </div>
 
