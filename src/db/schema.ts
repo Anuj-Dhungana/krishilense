@@ -238,6 +238,7 @@ export const canonicalDailyMarketPrices = pgTable("canonical_daily_market_prices
   dateAdIdx: index("idx_canonical_date_ad").on(t.dateAd),
   bsMonthIdx: index("idx_canonical_bs_month").on(t.bsMonth),
   marketCommodityIdx: index("idx_canonical_market_commodity").on(t.marketId, t.ampisCommodityId),
+  commodityDateIdx: index("idx_canonical_commodity_date").on(t.ampisCommodityId, t.dateAd),
 }));
 
 // ==============================================================================

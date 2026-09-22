@@ -24,9 +24,9 @@ export async function GET(request: NextRequest) {
 
     const commId = commodity[0].id;
 
-    // 2. Fetch all current active prices for this commodity across markets
-    const allPrices = await db
-      .select({
+    // 2. Fetch the latest active price for each market using DISTINCT ON
+    const uniqueMarketPrices = await db
+      .selectDistinctOn([schema.canonicalDailyMarketPrices.marketId], {
         marketId: schema.markets.id,
         marketSlug: schema.markets.publicSlug,
         marketNameNe: schema.markets.nameNe,
@@ -44,16 +44,7 @@ export async function GET(request: NextRequest) {
         eq(schema.canonicalDailyMarketPrices.ampisCommodityId, commId),
         eq(schema.canonicalDailyMarketPrices.isCurrent, true)
       ))
-      .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd), desc(schema.canonicalDailyMarketPrices.representativePrice));
-
-    // 3. Deduplicate: Ensure each market hub appears only ONCE (latest observation)
-    const marketMap = new Map<string, typeof allPrices[0]>();
-    for (const p of allPrices) {
-      if (!marketMap.has(p.marketSlug)) {
-        marketMap.set(p.marketSlug, p);
-      }
-    }
-    const uniqueMarketPrices = Array.from(marketMap.values());
+      .orderBy(schema.canonicalDailyMarketPrices.marketId, desc(schema.canonicalDailyMarketPrices.dateAd));
 
     // 4. Identify base market price
     const baseRecord = uniqueMarketPrices.find((p) => p.marketSlug === baseMarketSlug);

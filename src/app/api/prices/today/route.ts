@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "../../../../db";
 import { canonicalDailyMarketPrices, ampisCommodities, markets } from "../../../../db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -23,29 +23,48 @@ export async function GET(request: NextRequest) {
 
     const marketId = market[0].id;
 
-    // 2. Fetch the latest active canonical prices for this market
-    const prices = await db
-      .select({
-        id: canonicalDailyMarketPrices.id,
-        commodity_code: ampisCommodities.code,
-        commodity_name_en: ampisCommodities.nameEn,
-        commodity_name_ne: ampisCommodities.nameNe,
-        category_en: ampisCommodities.categoryEn,
-        category_ne: ampisCommodities.categoryNe,
-        canonical_unit: canonicalDailyMarketPrices.canonicalUnit,
-        date_ad: canonicalDailyMarketPrices.dateAd,
-        bs_year: canonicalDailyMarketPrices.bsYear,
-        bs_month: canonicalDailyMarketPrices.bsMonth,
-        bs_day: canonicalDailyMarketPrices.bsDay,
-        min_price: canonicalDailyMarketPrices.minPrice,
-        max_price: canonicalDailyMarketPrices.maxPrice,
-        representative_price: canonicalDailyMarketPrices.representativePrice,
-        price_measure_type: canonicalDailyMarketPrices.priceMeasureType,
-      })
+    // 2. Find the latest available date for this market
+    const latestDateRow = await db
+      .select({ date: canonicalDailyMarketPrices.dateAd })
       .from(canonicalDailyMarketPrices)
-      .innerJoin(ampisCommodities, eq(canonicalDailyMarketPrices.ampisCommodityId, ampisCommodities.id))
-      .where(eq(canonicalDailyMarketPrices.marketId, marketId))
-      .orderBy(desc(canonicalDailyMarketPrices.dateAd), ampisCommodities.code);
+      .where(and(
+        eq(canonicalDailyMarketPrices.marketId, marketId),
+        eq(canonicalDailyMarketPrices.isCurrent, true)
+      ))
+      .orderBy(desc(canonicalDailyMarketPrices.dateAd))
+      .limit(1);
+
+    const latestDate = latestDateRow[0]?.date;
+
+    // 3. Fetch only that date's active canonical prices
+    const prices = latestDate
+      ? await db
+          .select({
+            id: canonicalDailyMarketPrices.id,
+            commodity_code: ampisCommodities.code,
+            commodity_name_en: ampisCommodities.nameEn,
+            commodity_name_ne: ampisCommodities.nameNe,
+            category_en: ampisCommodities.categoryEn,
+            category_ne: ampisCommodities.categoryNe,
+            canonical_unit: canonicalDailyMarketPrices.canonicalUnit,
+            date_ad: canonicalDailyMarketPrices.dateAd,
+            bs_year: canonicalDailyMarketPrices.bsYear,
+            bs_month: canonicalDailyMarketPrices.bsMonth,
+            bs_day: canonicalDailyMarketPrices.bsDay,
+            min_price: canonicalDailyMarketPrices.minPrice,
+            max_price: canonicalDailyMarketPrices.maxPrice,
+            representative_price: canonicalDailyMarketPrices.representativePrice,
+            price_measure_type: canonicalDailyMarketPrices.priceMeasureType,
+          })
+          .from(canonicalDailyMarketPrices)
+          .innerJoin(ampisCommodities, eq(canonicalDailyMarketPrices.ampisCommodityId, ampisCommodities.id))
+          .where(and(
+            eq(canonicalDailyMarketPrices.marketId, marketId),
+            eq(canonicalDailyMarketPrices.isCurrent, true),
+            eq(canonicalDailyMarketPrices.dateAd, latestDate)
+          ))
+          .orderBy(ampisCommodities.code)
+      : [];
 
     return NextResponse.json({
       success: true,
