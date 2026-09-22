@@ -149,9 +149,9 @@ export default function ComparePage() {
                     </td>
                   </tr>
                 ) : (data?.data && data.data.length > 0) ? (
-                  data.data.map((item: MarketPrice) => (
+                  data.data.map((item: MarketPrice, index: number) => (
                     <tr 
-                      key={item.market_slug} 
+                      key={`${item.market_slug}-${index}`} 
                       className={`hover:bg-slate-50 transition-colors ${item.is_base ? "bg-emerald-50/50 font-semibold" : ""}`}
                     >
                       <td className="py-3 px-4">

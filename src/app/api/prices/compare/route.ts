@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "../../../../db";
 import * as schema from "../../../../db/schema";
-import { eq,  desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const commId = commodity[0].id;
 
-    // 2. Fetch all current prices for this commodity across all markets
+    // 2. Fetch all current active prices for this commodity across markets
     const allPrices = await db
       .select({
         marketId: schema.markets.id,
@@ -36,17 +36,30 @@ export async function GET(request: NextRequest) {
         repPrice: schema.canonicalDailyMarketPrices.representativePrice,
         priceMethod: schema.canonicalDailyMarketPrices.priceMeasureType,
         dateAd: schema.canonicalDailyMarketPrices.dateAd,
+        isCurrent: schema.canonicalDailyMarketPrices.isCurrent,
       })
       .from(schema.canonicalDailyMarketPrices)
       .innerJoin(schema.markets, eq(schema.canonicalDailyMarketPrices.marketId, schema.markets.id))
-      .where(eq(schema.canonicalDailyMarketPrices.ampisCommodityId, commId))
-      .orderBy(desc(schema.canonicalDailyMarketPrices.representativePrice));
+      .where(and(
+        eq(schema.canonicalDailyMarketPrices.ampisCommodityId, commId),
+        eq(schema.canonicalDailyMarketPrices.isCurrent, true)
+      ))
+      .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd), desc(schema.canonicalDailyMarketPrices.representativePrice));
 
-    // 3. Identify base market price
-    const baseRecord = allPrices.find((p) => p.marketSlug === baseMarketSlug);
+    // 3. Deduplicate: Ensure each market hub appears only ONCE (latest observation)
+    const marketMap = new Map<string, typeof allPrices[0]>();
+    for (const p of allPrices) {
+      if (!marketMap.has(p.marketSlug)) {
+        marketMap.set(p.marketSlug, p);
+      }
+    }
+    const uniqueMarketPrices = Array.from(marketMap.values());
+
+    // 4. Identify base market price
+    const baseRecord = uniqueMarketPrices.find((p) => p.marketSlug === baseMarketSlug);
     const basePrice = baseRecord ? parseFloat(baseRecord.repPrice) : null;
 
-    const comparison = allPrices.map((p) => {
+    const comparison = uniqueMarketPrices.map((p) => {
       const currentRep = parseFloat(p.repPrice);
       const spread = basePrice !== null ? currentRep - basePrice : 0;
       return {
