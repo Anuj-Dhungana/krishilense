@@ -37,13 +37,19 @@ interface DailyPriceInsert {
   sourceObservationId: number;
 }
 
-// Only process Part 2 (Part 1 is already 100% inserted!)
+// Process both files with the complete commodity map
 const FILES_TO_INGEST = [
   {
     path: "./data/kalimati_2021_2023.csv",
     label: "Part 2 (2021–2023)",
     hasHeaders: false,
     manualHeaders: ["Commodity", "Date", "Unit", "Minimum", "Maximum", "Average"],
+  },
+  {
+    path: "./data/kalimati_2013_2021.csv",
+    label: "Part 1 (2013–2021)",
+    hasHeaders: true,
+    manualHeaders: undefined,
   },
 ];
 

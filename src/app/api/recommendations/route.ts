@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "../../../db";
 import * as schema from "../../../db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     const selectedDistrictSlug = district_slug || "jhapa";
     const selectedIrrigation = irrigation_status || "IRRIGATED";
-    const selectedMonth = parseInt(planting_month) || 6; // Default Ashwin (Month 6)
+    const selectedMonth = parseInt(planting_month) || 6;
 
     // 1. Get District Context
     const district = await db
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const elevation = currentDistrict.averageElevationMeters;
 
     // 2. Query All Crop Calendars matching this Agro-Zone
-    const candidates = await db
+    const rawCandidates = await db
       .select({
         calendarId: schema.cropCalendars.id,
         agroZone: schema.cropCalendars.agroZone,
@@ -84,13 +84,21 @@ export async function POST(request: NextRequest) {
       .innerJoin(schema.ampisCommodities, eq(schema.cropVarietySystems.ampisCommodityId, schema.ampisCommodities.id))
       .where(eq(schema.cropCalendars.agroZone, agroZone));
 
+    // DEDUPLICATE CANDIDATES: Ensure each unique variety is only evaluated once
+    const seenVarieties = new Set<string>();
+    const candidates = rawCandidates.filter((c) => {
+      if (seenVarieties.has(c.varietySlug)) return false;
+      seenVarieties.add(c.varietySlug);
+      return true;
+    });
+
     const cohortA: RecommendedCrop[] = [];
     const cohortB: RecommendedCrop[] = [];
     const cohortC: RecommendedCrop[] = [];
     const cohortD: InsufficientDataCrop[] = [];
     const diagnostics: string[] = [];
 
-    // Default benchmark market (Kalimati)
+    // Benchmark Market (Kalimati)
     const market = await db
       .select()
       .from(schema.markets)
@@ -102,39 +110,49 @@ export async function POST(request: NextRequest) {
     }
 
     const marketId = market[0].id;
-    const altitudeBuffer = 150; // 150m buffer from model_params
+    const altitudeBuffer = 150;
+
+    // ⚡ PERFORMANCE BOOST: Fetch ALL baselines for Kalimati in ONE query (Avoids N+1 loop queries!)
+    const allBaselines = await db
+      .select()
+      .from(schema.seasonalBaselines)
+      .where(eq(schema.seasonalBaselines.marketId, marketId));
+
+    // Map: key = `${commodityId}-${bsMonth}`
+    const baselineMap = new Map(
+      allBaselines.map((b) => [`${b.ampisCommodityId}-${b.bsMonth}`, b])
+    );
 
     for (const crop of candidates) {
       // -------------------------------------------------------------
-      // GATE 1: 3-Tier Agronomic Viability (0 | 1 | 2)
+      // GATE 1: 3-Tier Agronomic Viability
       // -------------------------------------------------------------
       let fitZone: 0 | 1 | 2 = 0;
       if (elevation >= crop.altMin && elevation <= crop.altMax) {
-        fitZone = 2; // Optimal
+        fitZone = 2;
       } else if (
         elevation >= crop.altMin - altitudeBuffer &&
         elevation <= crop.altMax + altitudeBuffer
       ) {
-        fitZone = 1; // Marginal buffer
+        fitZone = 1;
       } else {
-        fitZone = 0; // Unsuitable
+        fitZone = 0;
       }
       
       let fitWater: 0 | 1 | 2 = 2;
       if (crop.baseWater === "HIGH_IRRIGATED" && selectedIrrigation === "RAINFED") {
-        fitWater = 0; // Deficit
+        fitWater = 0;
       } else if (crop.baseWater === "HIGH_IRRIGATED" && selectedIrrigation === "SEMI_IRRIGATED") {
-        fitWater = 1; // Marginal
+        fitWater = 1;
       }
 
       let fitTiming: 0 | 1 | 2 = 0;
       if (selectedMonth >= crop.sowStart && selectedMonth <= crop.sowEnd) {
-        fitTiming = 2; // Optimal
+        fitTiming = 2;
       } else if (selectedMonth === crop.sowEnd + 1) {
-        fitTiming = 1; // Late Grace
+        fitTiming = 1;
       }
 
-      // If any dimension is 0, crop is disqualified
       if (fitZone === 0 || fitWater === 0 || fitTiming === 0) {
         if (fitTiming === 0) {
           diagnostics.push(`${crop.cropNameNe} (${crop.varietyNameNe}) सिजन बाहिर पर्छ।`);
@@ -153,19 +171,11 @@ export async function POST(request: NextRequest) {
       if (harvestMonth > 12) harvestMonth -= 12;
 
       // -------------------------------------------------------------
-      // GATE 2: Historical Market Evidence Extraction
+      // GATE 2: Historical Market Evidence Lookup (Instant Memory Map!)
       // -------------------------------------------------------------
-      const baseline = await db
-        .select()
-        .from(schema.seasonalBaselines)
-        .where(and(
-          eq(schema.seasonalBaselines.marketId, marketId),
-          eq(schema.seasonalBaselines.ampisCommodityId, crop.commodityId),
-          eq(schema.seasonalBaselines.bsMonth, harvestMonth)
-        ))
-        .limit(1);
+      const b = baselineMap.get(`${crop.commodityId}-${harvestMonth}`);
 
-      if (!baseline.length) {
+      if (!b) {
         cohortD.push({
           cropNameNe: crop.cropNameNe,
           varietyNameNe: crop.varietyNameNe,
@@ -175,7 +185,6 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const b = baseline[0];
       const deltaSpi = b.deltaSpiPct ? parseFloat(b.deltaSpiPct) : null;
       const hcs = parseFloat(b.historicalConfidenceScore);
       const isHighConfidence = hcs >= 75.0 && b.validYearsCount >= 4;
@@ -212,7 +221,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sort intra-cohort by seasonal advantage DESC
     cohortA.sort((a, b) => (b.seasonalAdvantagePct ?? -99) - (a.seasonalAdvantagePct ?? -99));
     cohortB.sort((a, b) => (b.seasonalAdvantagePct ?? -99) - (a.seasonalAdvantagePct ?? -99));
 
