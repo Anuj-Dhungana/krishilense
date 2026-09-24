@@ -1,6 +1,5 @@
 import Link from "next/link";
-import SeasonalChart from "./seasonal-chart";
-import CropCalendarCard from "./crop-calendar-card";
+import IntelligenceTabs from "./intelligence-tabs";
 import { db } from "../../../db";
 import * as schema from "../../../db/schema";
 import { eq, and, desc } from "drizzle-orm";
@@ -62,7 +61,7 @@ export default async function CommodityPage({
     .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
     .limit(1);
 
-  // 4. Get 12-Month Seasonal Baselines
+  // 4. Get 12-Month Seasonal Baselines (if exists)
   const baselines = await db
     .select()
     .from(schema.seasonalBaselines)
@@ -72,12 +71,41 @@ export default async function CommodityPage({
     ))
     .orderBy(schema.seasonalBaselines.bsMonth);
 
+  const hasSeasonalBaselines = baselines.length >= 10;
+
   const seasonalCurve = baselines.map((b) => ({
     bs_month: b.bsMonth,
     month_name_ne: BS_MONTH_NAMES[b.bsMonth - 1],
     median_price: parseFloat(b.baselineMonthlyMedian),
     spi: b.spi ? parseFloat(b.spi) : null,
     delta_spi_pct: b.deltaSpiPct ? parseFloat(b.deltaSpiPct) : null,
+  }));
+
+  // 5. Query Recent Daily Prices (Up to 30 days)
+  const rawDailyPrices = await db
+    .select({
+      dateAd: schema.canonicalDailyMarketPrices.dateAd,
+      bsMonth: schema.canonicalDailyMarketPrices.bsMonth,
+      bsDay: schema.canonicalDailyMarketPrices.bsDay,
+      minPrice: schema.canonicalDailyMarketPrices.minPrice,
+      maxPrice: schema.canonicalDailyMarketPrices.maxPrice,
+      repPrice: schema.canonicalDailyMarketPrices.representativePrice,
+    })
+    .from(schema.canonicalDailyMarketPrices)
+    .where(and(
+      eq(schema.canonicalDailyMarketPrices.marketId, currentMarket.id),
+      eq(schema.canonicalDailyMarketPrices.ampisCommodityId, currentComm.id),
+      eq(schema.canonicalDailyMarketPrices.isCurrent, true)
+    ))
+    .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
+    .limit(30);
+
+  // Reverse so the chart plots chronologically left to right
+  const dailyTrendData = rawDailyPrices.reverse().map((d) => ({
+    date_label: `${d.bsMonth}/${d.bsDay}`,
+    min_price: parseFloat(d.minPrice),
+    max_price: parseFloat(d.maxPrice),
+    rep_price: parseFloat(d.repPrice),
   }));
 
   const sample = baselines[0];
@@ -124,7 +152,7 @@ export default async function CommodityPage({
           <div className="text-2xl sm:text-3xl font-bold text-emerald-700 mt-1 font-mono">
             रु. {today ? parseFloat(today.representativePrice).toFixed(2) : "—"}
           </div>
-          <span className="text-xs text-slate-400 mt-1 block">गणना विधि: मध्यविन्दु</span>
+          <span className="text-xs text-slate-400 mt-1 block">इकाइ: प्रति {currentComm.canonicalUnit}</span>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -144,59 +172,44 @@ export default async function CommodityPage({
         </div>
       </div>
 
-      {/* Card 2: 12-Month Seasonal Curve */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">
-              १२ महिनाको ऐतिहासिक मौसमी चक्र (12-Month Seasonal Pattern)
-            </h2>
-            <p className="text-xs text-slate-500">
-              विगत १० वर्षको वास्तविक कारोबारको मासिक औसत मूल्य प्रवृत्तिको आधारमा
-            </p>
-          </div>
-          <span className="text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 font-medium rounded border border-emerald-200">
-            {riskProfile?.confidence_label || "ऐतिहासिक तथ्याङ्क"}
-          </span>
-        </div>
-
-        <div className="pt-4">
-          <SeasonalChart data={seasonalCurve} />
-        </div>
-      </div>
-
-      {/* 12-Month Visual Crop Calendar Card */}
-      <CropCalendarCard 
-        data={seasonalCurve} 
-        cropNameNe={currentComm.nameNe} 
+      {/* INTERACTIVE TOGGLE TABS SECTION */}
+      <IntelligenceTabs
+        cropNameNe={currentComm.nameNe}
+        canonicalUnit={currentComm.canonicalUnit}
+        seasonalCurve={seasonalCurve}
+        hasSeasonalBaselines={hasSeasonalBaselines}
+        confidenceLabel={riskProfile?.confidence_label}
+        dailyTrendData={dailyTrendData}
       />
 
-      {/* Card 3: Risk Profile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-          <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-            <span>📊</span> दैनिक मूल्य उतारचढाव (Daily Volatility)
-          </h3>
-          <div className="text-xl font-bold text-amber-600 font-mono">
-            {riskProfile?.daily_cv ? `${riskProfile.daily_cv}%` : "—"}
+      {/* Card 3: Risk Profile (Shown when multi-year data is available) */}
+      {hasSeasonalBaselines && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span>📊</span> दैनिक मूल्य उतारचढाव (Daily Volatility)
+            </h3>
+            <div className="text-xl font-bold text-amber-600 font-mono">
+              {riskProfile?.daily_cv ? `${riskProfile.daily_cv}%` : "—"}
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              महिनाभित्र दैनिक मूल्यमा हुने स्वाभाविक घटबढ।
+            </p>
           </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            महिनाभित्र दैनिक मूल्यमा हुने स्वाभाविक घटबढ।
-          </p>
-        </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-          <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-            <span>🌱</span> वर्षगत उत्पादन स्थिरता (Annual Variability)
-          </h3>
-          <div className="text-xl font-bold text-emerald-700 font-mono">
-            {riskProfile?.annual_cv ? `${riskProfile.annual_cv}%` : "—"}
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span>🌱</span> वर्षगत उत्पादन स्थिरता (Annual Variability)
+            </h3>
+            <div className="text-xl font-bold text-emerald-700 font-mono">
+              {riskProfile?.annual_cv ? `${riskProfile.annual_cv}%` : "—"}
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              प्रत्येक वर्ष यस महिनाको औसत मूल्य कति स्थिर रहन्छ भनी नाप्ने परिसूचक।
+            </p>
           </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            प्रत्येक वर्ष यस महिनाको औसत मूल्य कति स्थिर रहन्छ भनी नाप्ने परिसूचक।
-          </p>
         </div>
-      </div>
+      )}
     </main>
   );
 }
