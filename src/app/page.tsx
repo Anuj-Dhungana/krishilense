@@ -2,7 +2,7 @@ import Link from "next/link";
 import MarketSelector from "./market-selector";
 import { db } from "../db";
 import * as schema from "../db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,6 @@ const CATEGORIES = [
   "कन्दमुल बाली",
   "कोसे / दाल बाली",
   "माछा",
-  "अन्य बाली",
 ];
 
 export default async function Home({
@@ -28,7 +27,7 @@ export default async function Home({
   const activeMarketSlug = urlMarket || "kalimati";
   const activeCategory = urlCategory || "सबै (All)";
 
-  // 1. Query Markets directly from Neon (No HTTP loop!)
+  // 1. Get All Markets for the Dropdown
   const marketsList = await db
     .select({
       id: schema.markets.id,
@@ -48,10 +47,14 @@ export default async function Home({
   const currentMarket = marketsList.find((m) => m.public_slug === activeMarketSlug) || marketsList[0];
   const marketId = currentMarket?.id || 1;
 
-  // 3. Query Today's Prices directly from Neon
-  //    Step A: Find the latest available date for this market
-  const latestDateRow = await db
-    .select({ date: schema.canonicalDailyMarketPrices.dateAd })
+  // 3. Find the single latest available date for this market
+  const latestDateQuery = await db
+    .select({
+      dateAd: schema.canonicalDailyMarketPrices.dateAd,
+      bsYear: schema.canonicalDailyMarketPrices.bsYear,
+      bsMonth: schema.canonicalDailyMarketPrices.bsMonth,
+      bsDay: schema.canonicalDailyMarketPrices.bsDay,
+    })
     .from(schema.canonicalDailyMarketPrices)
     .where(and(
       eq(schema.canonicalDailyMarketPrices.marketId, marketId),
@@ -60,46 +63,41 @@ export default async function Home({
     .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
     .limit(1);
 
-  const latestDate = latestDateRow[0]?.date;
-
-  //    Step B: Fetch only that date's prices (58 rows, not 89,000+)
-  const rawPrices = latestDate
-    ? await db
-        .select({
-          id: schema.canonicalDailyMarketPrices.id,
-          commodity_code: schema.ampisCommodities.code,
-          commodity_name_en: schema.ampisCommodities.nameEn,
-          commodity_name_ne: schema.ampisCommodities.nameNe,
-          category_ne: schema.ampisCommodities.categoryNe,
-          canonical_unit: schema.canonicalDailyMarketPrices.canonicalUnit,
-          date_ad: schema.canonicalDailyMarketPrices.dateAd,
-          bs_year: schema.canonicalDailyMarketPrices.bsYear,
-          bs_month: schema.canonicalDailyMarketPrices.bsMonth,
-          bs_day: schema.canonicalDailyMarketPrices.bsDay,
-          min_price: schema.canonicalDailyMarketPrices.minPrice,
-          max_price: schema.canonicalDailyMarketPrices.maxPrice,
-          representative_price: schema.canonicalDailyMarketPrices.representativePrice,
-        })
-        .from(schema.canonicalDailyMarketPrices)
-        .innerJoin(schema.ampisCommodities, eq(schema.canonicalDailyMarketPrices.ampisCommodityId, schema.ampisCommodities.id))
-        .where(and(
-          eq(schema.canonicalDailyMarketPrices.marketId, marketId),
-          eq(schema.canonicalDailyMarketPrices.isCurrent, true),
-          eq(schema.canonicalDailyMarketPrices.dateAd, latestDate)
-        ))
-        .orderBy(schema.ampisCommodities.code)
-    : [];
-
-
-  const dateInfo = rawPrices[0] ? {
-    date_ad: rawPrices[0].date_ad,
-    bs_date: `${rawPrices[0].bs_year}-${rawPrices[0].bs_month}-${rawPrices[0].bs_day}`,
+  const latestDateAd = latestDateQuery[0]?.dateAd;
+  const dateInfo = latestDateQuery[0] ? {
+    date_ad: latestDateQuery[0].dateAd,
+    bs_date: `${latestDateQuery[0].bsYear}-${String(latestDateQuery[0].bsMonth).padStart(2, "0")}-${String(latestDateQuery[0].bsDay).padStart(2, "0")}`,
   } : null;
 
-  // 4. Filter by Category
+  // 4. Query ONLY the commodities for this market and this specific latest date
+  let rawPrices: any[] = [];
+  if (latestDateAd) {
+    rawPrices = await db
+      .select({
+        id: schema.canonicalDailyMarketPrices.id,
+        commodity_code: schema.ampisCommodities.code,
+        commodity_name_en: schema.ampisCommodities.nameEn,
+        commodity_name_ne: schema.ampisCommodities.nameNe,
+        category_ne: schema.ampisCommodities.categoryNe,
+        canonical_unit: schema.canonicalDailyMarketPrices.canonicalUnit,
+        min_price: schema.canonicalDailyMarketPrices.minPrice,
+        max_price: schema.canonicalDailyMarketPrices.maxPrice,
+        representative_price: schema.canonicalDailyMarketPrices.representativePrice,
+      })
+      .from(schema.canonicalDailyMarketPrices)
+      .innerJoin(schema.ampisCommodities, eq(schema.canonicalDailyMarketPrices.ampisCommodityId, schema.ampisCommodities.id))
+      .where(and(
+        eq(schema.canonicalDailyMarketPrices.marketId, marketId),
+        eq(schema.canonicalDailyMarketPrices.dateAd, latestDateAd),
+        eq(schema.canonicalDailyMarketPrices.isCurrent, true)
+      ))
+      .orderBy(schema.ampisCommodities.categoryNe, schema.ampisCommodities.code);
+  }
+
+  // 5. Filter by Category
   const filteredPrices = activeCategory === "सबै (All)"
     ? rawPrices
-    : rawPrices.filter((p) => p.category_ne === activeCategory || p.category_ne.includes(activeCategory));
+    : rawPrices.filter((p) => p.category_ne?.trim() === activeCategory || p.category_ne?.includes(activeCategory));
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">

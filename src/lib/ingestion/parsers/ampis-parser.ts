@@ -14,8 +14,8 @@ export function parseAmpisHtml(html: string): ParsedCommodityRow[] {
   const $ = cheerio.load(html);
   const rows: ParsedCommodityRow[] = [];
 
-  // Find all Drupal Views tables with class cols-5
-  $("table.cols-5").each((_, tableElement) => {
+  // Find all Drupal Views tables (supports cols-5, cols-8, or generic table containing views fields)
+  $("table").each((_, tableElement) => {
     // Caption holds the Category (e.g. 'तरकारी', 'फलफूल')
     const categoryNe = $(tableElement).find("caption").text().trim() || "तरकारी";
 
