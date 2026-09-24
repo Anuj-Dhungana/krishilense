@@ -6,16 +6,17 @@ import { eq, and, desc, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
-const CATEGORIES = [
-  "सबै (All)",
+const STANDARD_CATEGORY_ORDER = [
   "तरकारी",
   "फलफूल",
   "मसला बाली",
   "सागपात",
-  "च्याउ खेती",
   "कन्दमुल बाली",
   "कोसे / दाल बाली",
+  "च्याउ खेती",
   "माछा",
+  "मासु",
+  "दुग्धजन्य",
 ];
 
 export default async function Home({
@@ -94,7 +95,26 @@ export default async function Home({
       .orderBy(schema.ampisCommodities.categoryNe, schema.ampisCommodities.code);
   }
 
-  // 5. Filter by Category
+  // 5. Compute categories and counts dynamically for this market's bulletin
+  const categoryCounts = new Map<string, number>();
+  for (const item of rawPrices) {
+    const cat = item.category_ne?.trim();
+    if (cat) {
+      categoryCounts.set(cat, (categoryCounts.get(cat) || 0) + 1);
+    }
+  }
+
+  const marketCategoryPills = [
+    { label: "सबै (All)", count: rawPrices.length },
+    ...STANDARD_CATEGORY_ORDER
+      .filter((cat) => categoryCounts.has(cat))
+      .map((cat) => ({ label: cat, count: categoryCounts.get(cat)! })),
+    ...Array.from(categoryCounts.keys())
+      .filter((cat) => !STANDARD_CATEGORY_ORDER.includes(cat))
+      .map((cat) => ({ label: cat, count: categoryCounts.get(cat)! })),
+  ];
+
+  // 6. Filter by Category
   const filteredPrices = activeCategory === "सबै (All)"
     ? rawPrices
     : rawPrices.filter((p) => p.category_ne?.trim() === activeCategory || p.category_ne?.includes(activeCategory));
@@ -138,26 +158,33 @@ export default async function Home({
         <div className="flex items-center gap-3">
           <MarketSelector markets={marketsList} currentMarket={activeMarketSlug} />
           <div className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-2 rounded-xl border">
-            सूचीकृत बाली: <strong className="text-emerald-700">{filteredPrices.length}</strong>
+            सूचीकृत कृषि उपज: <strong className="text-emerald-700">{filteredPrices.length}</strong>
           </div>
         </div>
       </div>
 
       {/* Category Filter Pills */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none text-xs">
-        {CATEGORIES.map((cat) => {
-          const isActive = activeCategory === cat;
+        {marketCategoryPills.map(({ label, count }) => {
+          const isActive = activeCategory === label;
           return (
             <Link
-              key={cat}
-              href={`/?market=${activeMarketSlug}&category=${encodeURIComponent(cat)}`}
-              className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-colors border ${
+              key={label}
+              href={`/?market=${activeMarketSlug}&category=${encodeURIComponent(label)}`}
+              className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-colors border flex items-center gap-1.5 ${
                 isActive
                   ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
                   : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
               }`}
             >
-              {cat}
+              <span>{label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                  isActive ? "bg-emerald-800 text-emerald-100" : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {count}
+              </span>
             </Link>
           );
         })}
@@ -188,7 +215,9 @@ export default async function Home({
                       >
                         <span className="font-semibold text-emerald-950 hover:text-emerald-700">{item.commodity_name_ne}</span>
                         <span className="text-xs font-normal text-slate-500">
-                          {item.commodity_name_en} (#{item.commodity_code}) ➔
+                          {item.commodity_name_en && item.commodity_name_en !== item.commodity_name_ne ? `${item.commodity_name_en} • ` : ""}
+                          {item.category_ne}
+                          {!item.commodity_code.startsWith("AMPIS-LIVE-") ? ` (#${item.commodity_code})` : ""} ➔
                         </span>
                       </Link>
                     </td>

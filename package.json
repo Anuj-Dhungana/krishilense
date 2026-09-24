@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "ingest:daily": "npx tsx scripts/run-daily-ingest.ts"
+    "ingest:daily": "npx tsx scripts/run-daily-ingest.ts",
+    "ingest:live": "npx tsx scripts/fetch-live-ampis.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
