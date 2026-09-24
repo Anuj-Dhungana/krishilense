@@ -6,19 +6,20 @@ import { eq, and, desc, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
-const STANDARD_CATEGORY_ORDER = [
+const CATEGORIES = [
+  "सबै (All)",
   "तरकारी",
+  "खाद्यान्न बाली",
+  "दुग्धजन्य",
+  "मासु",
   "फलफूल",
   "मसला बाली",
   "सागपात",
+  "च्याउ खेती",
   "कन्दमुल बाली",
   "कोसे / दाल बाली",
-  "च्याउ खेती",
   "माछा",
-  "मासु",
-  "दुग्धजन्य",
 ];
-
 export default async function Home({
   searchParams,
 }: {
@@ -106,11 +107,10 @@ export default async function Home({
 
   const marketCategoryPills = [
     { label: "सबै (All)", count: rawPrices.length },
-    ...STANDARD_CATEGORY_ORDER
-      .filter((cat) => categoryCounts.has(cat))
+    ...CATEGORIES.filter((cat) => cat !== "सबै (All)" && categoryCounts.has(cat))
       .map((cat) => ({ label: cat, count: categoryCounts.get(cat)! })),
     ...Array.from(categoryCounts.keys())
-      .filter((cat) => !STANDARD_CATEGORY_ORDER.includes(cat))
+      .filter((cat) => !CATEGORIES.includes(cat))
       .map((cat) => ({ label: cat, count: categoryCounts.get(cat)! })),
   ];
 
