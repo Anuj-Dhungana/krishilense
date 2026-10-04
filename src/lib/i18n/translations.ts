@@ -330,6 +330,29 @@ export const translations = {
     ne: "KrishiLens Nepal ले किसानहरूलाई सही र भरपर्दो निर्णय लिन सहयोग पुर्याउन प्रयोग गरेका आधिकारिक सरकारी स्रोत, गणितीय सूत्र र विश्लेषण विधिहरू।",
     en: "Official government sources, mathematical formulas, and analytical methods used by KrishiLens Nepal to help farmers make accurate and reliable decisions.",
   },
+  meth_scope_title: { ne: "महत्वपूर्ण सूचना: १०–१२ वर्षे ऐतिहासिक तथ्याङ्कको दायरा", en: "Important Notice: 10–12 Year Historical Data Scope" },
+  meth_scope_desc: {
+    ne: "यस प्रणालीमा प्रस्तुत गरिएको १० देखि १२ वर्षको निरन्तर ऐतिहासिक मूल्य तथ्याङ्क केवल कालिमाटी फलफूल तथा तरकारी बजार विकास बोर्ड, काठमाडौंको तथ्याङ्कबाट प्राप्त भएको हो।",
+    en: "The 10 to 12 years of continuous historical price data presented here comes exclusively from the Kalimati Fruits and Vegetables Market Development Board in Kathmandu.",
+  },
+  meth_scope_benchmark: {
+    ne: "कालिमाटीलाई केन्द्रीय बेन्चमार्क मानिएको: अन्य क्षेत्रीय बजारहरूको विगत १० वर्षको दैनिक डिजिटल अभिलेख उपलब्ध छैन।",
+    en: "Kalimati as the central benchmark: 10 years of daily digital records are not available for the other regional markets.",
+  },
+  meth_scope_curve: {
+    ne: "मौसमी चक्रको आधार: १२ महिनाको सूचकाङ्क कालिमाटीको ऐतिहासिक अभिलेखलाई राष्ट्रिय आधार मानेर निकालिएको हो।",
+    en: "Seasonal curve basis: The 12-month index uses Kalimati's historical records as the national benchmark.",
+  },
+  meth_ampis_badge: { ne: "दैनिक ताजा थोक दर", en: "Daily Wholesale Rates" },
+  meth_ampis_scope: { ne: "दायरा: १२ वटै संघीय बजार", en: "Scope: All 12 federal markets" },
+  meth_kalimati_badge: { ne: "केन्द्रीय बेन्चमार्क", en: "Central Benchmark" },
+  meth_kalimati_scope: { ne: "दायरा: कालिमाटी केन्द्रीय बजार", en: "Scope: Kalimati central market" },
+  meth_opendata_title: { ne: "ओपन डाटा नेपाल", en: "Open Data Nepal" },
+  meth_opendata_desc: { ne: "जुन २०१३ देखि सेप्टेम्बर २०२३ सम्मको कालिमाटी दैनिक थोक कारोबारको खुला सरकारी अभिलेख, जसबाट मौसमी चक्र र जोखिम गणना गरिएको हो।", en: "Open government records of daily Kalimati wholesale trading from June 2013 to September 2023, used to calculate seasonal cycles and risk." },
+  meth_opendata_badge: { ne: "१० वर्षे ऐतिहासिक अभिलेख", en: "10-Year Historical Records" },
+  meth_opendata_scope: { ne: "दायरा: २०१३–२०२३", en: "Scope: 2013–2023" },
+  meth_aitc_badge: { ne: "बाली क्यालेन्डर आधार", en: "Crop Calendar Basis" },
+  meth_aitc_scope: { ne: "दायरा: नेपालका ७७ वटै जिल्ला", en: "Scope: All 77 districts of Nepal" },
 
   // Section 1
   meth_s1_title: { ne: "१. आधिकारिक तथ्याङ्क स्रोतहरू", en: "1. Official Data Sources" },
@@ -364,6 +387,7 @@ export const translations = {
     ne: "प्रतिनिधि मूल्य = (न्यूनतम मूल्य + अधिकतम मूल्य) ÷ २",
     en: "Representative Price = (Minimum Price + Maximum Price) ÷ 2",
   },
+  meth_midpoint_markets: { ne: "लागू हुने बजारहरू: बिर्तामोड, धरान, ढल्केबर, पोखरा, बुटवल, अत्तरिया आदि।", en: "Markets covered: Birtamod, Dharan, Dhalkebar, Pokhara, Butwal, Attariya, and others." },
   meth_mean_title: { ne: "कालिमाटी अंकगणितीय औसत", en: "Kalimati Arithmetic Mean" },
   meth_mean_desc: {
     ne: "कालिमाटी बजारमा बिहानको कारोबारको क्रममा विभिन्न स्टलहरूबाट संकलित मूल्यहरूको वास्तविक अंकगणितीय औसत निकालिन्छ:",
@@ -373,6 +397,7 @@ export const translations = {
     ne: "औसत मूल्य = ∑ (संकलित मूल्यहरू) ÷ जम्मा कारोबार संख्या",
     en: "Avg. Price = Σ (Collected Prices) ÷ Total Trades",
   },
+  meth_mean_market: { ne: "लागू हुने बजार: कालिमाटी फलफूल तथा तरकारी बजार (काठमाडौं)।", en: "Market covered: Kalimati Fruits and Vegetables Market (Kathmandu)." },
 
   // Section 3
   meth_s3_title: { ne: "३. गणितीय सूत्र तथा जोखिम विश्लेषण", en: "3. Mathematical Formulas & Risk Analysis" },

@@ -85,9 +85,6 @@ export default function CommodityPageClient({
           >
             {t("commodity_compare_all")}
           </Link>
-          <span className="text-xs px-2.5 py-1 bg-slate-100 rounded-full font-mono text-slate-600 border">
-            #{formatNum(commodity.code)}
-          </span>
         </div>
       </div>
 

@@ -106,8 +106,7 @@ export default function PlanPage() {
               <span className="text-sm font-normal text-slate-500">({item.varietyNameNe})</span>
             </h4>
             <span className="text-xs text-slate-500">
-              {t("crop_duration")} {formatNum(item.maturityDaysRange[0])}–{formatNum(item.maturityDaysRange[1])} {t("crop_days")} •{" "}
-              {t("crop_code")} #{formatNum(item.commodityCode)}
+              {t("crop_duration")} {formatNum(item.maturityDaysRange[0])}–{formatNum(item.maturityDaysRange[1])} {t("crop_days")}
             </span>
           </div>
           <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full ${badgeColor}`}>

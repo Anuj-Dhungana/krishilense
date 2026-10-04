@@ -62,29 +62,6 @@ export default function HomeClient({
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-emerald-800 to-teal-700 text-white rounded-2xl p-6 sm:p-8 shadow-md">
-        <div className="max-w-2xl space-y-3">
-          <span className="inline-block px-2.5 py-0.5 bg-emerald-600/60 rounded text-xs tracking-wider uppercase font-semibold">
-            {t("home_badge")}
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight">
-            {t("home_hero_title")}
-          </h2>
-          <p className="text-emerald-100 text-sm sm:text-base">
-            {t("home_hero_desc")}
-          </p>
-          <div className="pt-2">
-            <Link
-              href="/plan"
-              className="inline-block px-5 py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 font-bold rounded-xl text-xs sm:text-sm shadow transition-colors"
-            >
-              {t("home_cta_plan")}
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Market Controls & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div>
@@ -172,11 +149,7 @@ export default function HomeClient({
                             {commodityName}
                           </span>
                           <span className="text-xs font-normal text-slate-500">
-                            {categoryDisplay}
-                            {!item.commodity_code.startsWith("AMPIS-LIVE-")
-                              ? ` (#${formatNum(item.commodity_code)})`
-                              : ""}{" "}
-                            ➔
+                            {categoryDisplay} ➔
                           </span>
                         </Link>
                       </td>

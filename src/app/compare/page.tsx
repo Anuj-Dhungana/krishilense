@@ -117,7 +117,7 @@ export default function ComparePage() {
                     .filter((c) => c.categoryNe === cat)
                     .map((c) => (
                       <option key={c.code} value={c.code}>
-                        {lang === "ne" ? c.nameNe : (c.nameEn || c.nameNe)} - #{formatNum(c.code)}
+                        {lang === "ne" ? c.nameNe : (c.nameEn || c.nameNe)}
                       </option>
                     ))}
                 </optgroup>
