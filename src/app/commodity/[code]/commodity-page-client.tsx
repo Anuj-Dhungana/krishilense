@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BarChart3, MapPin, Sprout } from "lucide-react";
 import { useLanguage, CATEGORY_NE_TO_KEY } from "../../../lib/i18n";
 import IntelligenceTabs from "./intelligence-tabs";
 
@@ -74,7 +75,7 @@ export default function CommodityPageClient({
             {commodityName}
           </h1>
           <p className="text-slate-500 text-sm">
-            {categoryDisplay} • 📍 {marketName}
+            {categoryDisplay} • <MapPin className="inline-block h-4 w-4 text-emerald-700" aria-hidden="true" /> {marketName}
           </p>
         </div>
 
@@ -83,6 +84,7 @@ export default function CommodityPageClient({
             href={`/compare?commodity=${commodity.code}`}
             className="text-xs px-3 py-1.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold rounded-lg border border-emerald-200 transition-colors"
           >
+            <BarChart3 className="mr-1.5 inline-block h-4 w-4" aria-hidden="true" />
             {t("commodity_compare_all")}
           </Link>
         </div>
@@ -133,7 +135,7 @@ export default function CommodityPageClient({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-              <span>📊</span> {t("risk_daily_volatility")}
+              <BarChart3 className="h-4 w-4 text-amber-600" aria-hidden="true" /> {t("risk_daily_volatility")}
             </h3>
             <div className="text-xl font-bold text-amber-600 font-mono">
               {riskProfile?.daily_cv ? `${formatPrice(riskProfile.daily_cv)}%` : "—"}
@@ -143,7 +145,7 @@ export default function CommodityPageClient({
 
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-              <span>🌱</span> {t("risk_annual_variability")}
+              <Sprout className="h-4 w-4 text-emerald-700" aria-hidden="true" /> {t("risk_annual_variability")}
             </h3>
             <div className="text-xl font-bold text-emerald-700 font-mono">
               {riskProfile?.annual_cv ? `${formatPrice(riskProfile.annual_cv)}%` : "—"}

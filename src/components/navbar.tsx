@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BarChart3, BookOpen, Languages, Sprout, Wheat } from "lucide-react";
 import { useLanguage } from "../lib/i18n";
 
 export default function Navbar() {
@@ -20,7 +21,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Logo & Brand */}
         <Link href="/" className="flex items-center space-x-2">
-          <span className="text-2xl">🌾</span>
+          <Wheat className="h-7 w-7 text-emerald-700" aria-hidden="true" />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-emerald-800">{t("brand_name")}</h1>
             <p className="text-[11px] text-slate-500">{t("brand_tagline")}</p>
@@ -42,6 +43,9 @@ export default function Navbar() {
                       : "text-slate-600 hover:text-emerald-700 hover:bg-slate-100"
                   }`}
                 >
+                  {link.href === "/plan" && <Sprout className="mr-1.5 inline-block h-4 w-4" aria-hidden="true" />}
+                  {link.href === "/compare" && <BarChart3 className="mr-1.5 inline-block h-4 w-4" aria-hidden="true" />}
+                  {link.href === "/methodology" && <BookOpen className="mr-1.5 inline-block h-4 w-4" aria-hidden="true" />}
                   {link.label}
                 </Link>
               );
@@ -56,7 +60,7 @@ export default function Navbar() {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 text-slate-700 font-bold text-xs sm:text-sm transition-colors whitespace-nowrap"
             aria-label="Toggle language"
           >
-            <span className="text-base leading-none">{lang === "ne" ? "🇬🇧" : "🇳🇵"}</span>
+            <Languages className="h-4 w-4" aria-hidden="true" />
             <span>{t("lang_switch_label")}</span>
           </button>
         </div>

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { CalendarDays, Filter, Leaf, MapPin, Search, Store, Tag, TrendingUp } from "lucide-react";
+import { useState } from "react";
 import { useLanguage, CATEGORY_NE_TO_KEY, type TranslationKey } from "../lib/i18n";
-import MarketSelector from "./market-selector";
 
 type PriceRow = {
   id: number;
@@ -54,62 +56,119 @@ export default function HomeClient({
   filteredPrices,
 }: Props) {
   const { t, lang, formatPrice, formatCount, formatDate, formatNum } = useLanguage();
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [unit, setUnit] = useState("all");
+  const [date, setDate] = useState(dateInfo?.date_ad || "");
 
   const marketDisplayName =
     lang === "ne"
       ? currentMarket?.name_ne || "कृषि थोक बजार"
       : currentMarket?.name_en || "Agricultural Wholesale Market";
 
+  const units = Array.from(new Set(filteredPrices.map((item) => item.canonical_unit))).filter(Boolean);
+  const averagePrice = filteredPrices.length
+    ? filteredPrices.reduce((sum, item) => sum + Number(item.representative_price), 0) / filteredPrices.length
+    : 0;
+  const latestUpdate = dateInfo?.date_ad ? formatDate(dateInfo.date_ad) : t("home_today");
+  const visiblePrices = filteredPrices.filter((item) => {
+    const query = search.trim().toLowerCase();
+    const matchesSearch = !query || [item.commodity_name_en, item.commodity_name_ne, item.commodity_code]
+      .some((value) => value.toLowerCase().includes(query));
+    const matchesUnit = unit === "all" || item.canonical_unit === unit;
+    return matchesSearch && matchesUnit;
+  });
+
+  function applyFilters(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const params = new URLSearchParams();
+    params.set("market", activeMarketSlug);
+    if (activeCategory !== "all") params.set("category", activeCategory);
+    if (date) params.set("date", date);
+    router.push(`/?${params.toString()}`);
+  }
+
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-      {/* Market Controls & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div>
-          <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-            <span>📍</span> {marketDisplayName}
-          </h3>
-          <p className="text-xs text-slate-500">
-            {t("home_data_date_prefix")}{" "}
-            {dateInfo ? `${formatDate(dateInfo.bs_date)} ${t("home_data_date_bs_suffix")} (${formatDate(dateInfo.date_ad)})` : t("home_today")}
-            {" "}• {t("home_methodology_label")}
+      <section className="relative min-h-[150px] overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50 px-6 py-5 shadow-sm sm:px-8">
+        <div
+          className="pointer-events-none absolute inset-0 bg-contain bg-right bg-no-repeat"
+          style={{ backgroundImage: "url('/banner.jpg')" }}
+          aria-hidden="true"
+        />
+        <div className="relative z-10 max-w-2xl">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+            Fresh Produce · Fair Prices · Stronger Farmers
           </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <MarketSelector markets={marketsList} currentMarket={activeMarketSlug} />
-          <div className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-2 rounded-xl border">
-            {t("home_listed_commodities")}{" "}
-            <strong className="text-emerald-700">{formatCount(filteredPrices.length)}</strong>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-emerald-950 sm:text-3xl">
+            {marketDisplayName}
+          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+            <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />{currentMarket?.district.name_en || "Nepal"}</span>
+            <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />{latestUpdate}</span>
+            <span className="text-slate-400">{lang === "ne" ? "(आजको बजार)" : "(Updated today)"}</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Category Filter Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none text-xs">
-        {categoryPills.map(({ labelNe, count }) => {
-          const isActive = activeCategory === labelNe;
-          const displayLabel = translateCategoryLabel(labelNe, t);
-          return (
-            <Link
-              key={labelNe}
-              href={`/?market=${activeMarketSlug}&category=${encodeURIComponent(labelNe)}`}
-              className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-colors border flex items-center gap-1.5 ${
-                isActive
-                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
-              }`}
-            >
-              <span>{displayLabel}</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                  isActive ? "bg-emerald-800 text-emerald-100" : "bg-slate-100 text-slate-600"
-                }`}
-              >
-                {formatCount(count)}
-              </span>
-            </Link>
-          );
-        })}
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <SummaryCard icon={<Leaf className="h-5 w-5" />} label={lang === "ne" ? "कुल कृषि उपज" : "Total Commodities"} value={formatCount(filteredPrices.length)} detail={lang === "ne" ? "आज सूचीकृत" : "items listed today"} />
+        <SummaryCard icon={<Tag className="h-5 w-5" />} label={lang === "ne" ? "औसत मूल्य" : "Average Price"} value={`${t("currency")} ${formatPrice(averagePrice)}`} detail={lang === "ne" ? "आजको बजार औसत" : "today's market average"} />
+        <SummaryCard icon={<Store className="h-5 w-5" />} label={lang === "ne" ? "कुल बजार" : "Total Markets"} value={formatCount(marketsList.length)} detail={lang === "ne" ? "सम्बन्धित बजार" : "connected markets"} />
+        <SummaryCard icon={<CalendarDays className="h-5 w-5" />} label={lang === "ne" ? "पछिल्लो अपडेट" : "Latest Update"} value={latestUpdate} detail={dateInfo?.bs_date ? formatDate(dateInfo.bs_date) : ""} />
+      </section>
+
+      <form onSubmit={applyFilters} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_0.8fr_0.9fr_auto] gap-3 items-end">
+        <label className="relative block">
+          <span className="sr-only">{lang === "ne" ? "कृषि उपज खोज्नुहोस्" : "Search commodity"}</span>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={lang === "ne" ? "कृषि उपज खोज्नुहोस्..." : "Search commodity..."}
+            className="w-full h-10 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          />
+        </label>
+
+        <label className="text-[10px] font-semibold text-slate-500">
+          {lang === "ne" ? "वर्ग" : "Commodity / Category"}
+          <select value={activeCategory} onChange={(event) => router.push(`/?market=${activeMarketSlug}&category=${encodeURIComponent(event.target.value)}`)} className="mt-1 w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700">
+            {categoryPills.map(({ labelNe }) => <option key={labelNe} value={labelNe}>{translateCategoryLabel(labelNe, t)}</option>)}
+          </select>
+        </label>
+
+        <label className="text-[10px] font-semibold text-slate-500">
+          {lang === "ne" ? "बजार" : "Market"}
+          <select value={activeMarketSlug} onChange={(event) => router.push(`/?market=${event.target.value}&category=${encodeURIComponent(activeCategory)}`)} className="mt-1 w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700">
+            {marketsList.map((marketItem) => <option key={marketItem.public_slug} value={marketItem.public_slug}>{lang === "ne" ? marketItem.name_ne : marketItem.name_en}</option>)}
+          </select>
+        </label>
+
+        <label className="text-[10px] font-semibold text-slate-500">
+          {lang === "ne" ? "इकाइ" : "Unit"}
+          <select value={unit} onChange={(event) => setUnit(event.target.value)} className="mt-1 w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700">
+            <option value="all">{lang === "ne" ? "सबै इकाइ" : "All Units"}</option>
+            {units.map((itemUnit) => <option key={itemUnit} value={itemUnit}>{itemUnit}</option>)}
+          </select>
+        </label>
+
+        <label className="text-[10px] font-semibold text-slate-500">
+          {lang === "ne" ? "मिति" : "Date"}
+          <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mt-1 w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700" />
+        </label>
+
+        <button type="submit" className="h-10 rounded-lg bg-emerald-700 px-4 text-xs font-bold text-white shadow-sm transition-colors hover:bg-emerald-800 inline-flex items-center justify-center gap-2">
+          <Filter className="h-3.5 w-3.5" aria-hidden="true" />
+          {lang === "ne" ? "फिल्टर लागू गर्नुहोस्" : "Apply Filters"}
+        </button>
+      </form>
+
+      <div className="flex items-center justify-between">
+        <h2 className="inline-flex items-center gap-2 text-lg font-bold text-emerald-950">
+          <TrendingUp className="h-5 w-5 text-emerald-700" aria-hidden="true" />
+          {lang === "ne" ? "आजको बजार मूल्य" : "Market Price List"}
+        </h2>
+        <span className="text-xs text-slate-500">{formatCount(visiblePrices.length)} {lang === "ne" ? "उपज" : "items"}</span>
       </div>
 
       {/* Price Table Card */}
@@ -127,8 +186,8 @@ export default function HomeClient({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredPrices.length > 0 ? (
-                filteredPrices.map((item) => {
+              {visiblePrices.length > 0 ? (
+                visiblePrices.map((item) => {
                   const commodityName = lang === "ne"
                     ? item.commodity_name_ne
                     : item.commodity_name_en || item.commodity_name_ne;
@@ -179,5 +238,18 @@ export default function HomeClient({
         </div>
       </div>
     </main>
+  );
+}
+
+function SummaryCard({ icon, label, value, detail }: { icon: React.ReactNode; label: string; value: string; detail: string }) {
+  return (
+    <div className="flex min-h-[112px] items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">{icon}</span>
+      <div className="min-w-0">
+        <p className="truncate text-[11px] text-slate-500">{label}</p>
+        <p className="mt-1 truncate text-xl font-extrabold text-emerald-950">{value}</p>
+        <p className="mt-1 truncate text-[10px] text-slate-400">{detail}</p>
+      </div>
+    </div>
   );
 }

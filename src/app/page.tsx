@@ -26,9 +26,9 @@ const ALL_SENTINEL = "all";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ market?: string; category?: string }>;
+  searchParams: Promise<{ market?: string; category?: string; date?: string }>;
 }) {
-  const { market: urlMarket, category: urlCategory } = await searchParams;
+  const { market: urlMarket, category: urlCategory, date: urlDate } = await searchParams;
   const activeMarketSlug = urlMarket || "kalimati";
   // Category param in URL is either "all" or a Nepali category string
   const activeCategory = urlCategory || ALL_SENTINEL;
@@ -55,7 +55,7 @@ export default async function Home({
   const marketId = currentMarket?.id || 1;
 
   // 3. Find the single latest available date for this market
-  const latestDateQuery = await db
+  const dateQuery = await db
     .select({
       dateAd: schema.canonicalDailyMarketPrices.dateAd,
       bsYear: schema.canonicalDailyMarketPrices.bsYear,
@@ -63,17 +63,25 @@ export default async function Home({
       bsDay: schema.canonicalDailyMarketPrices.bsDay,
     })
     .from(schema.canonicalDailyMarketPrices)
-    .where(and(
-      eq(schema.canonicalDailyMarketPrices.marketId, marketId),
-      eq(schema.canonicalDailyMarketPrices.isCurrent, true)
-    ))
+    .where(
+      urlDate
+        ? and(
+            eq(schema.canonicalDailyMarketPrices.marketId, marketId),
+            eq(schema.canonicalDailyMarketPrices.dateAd, urlDate),
+            eq(schema.canonicalDailyMarketPrices.isCurrent, true)
+          )
+        : and(
+            eq(schema.canonicalDailyMarketPrices.marketId, marketId),
+            eq(schema.canonicalDailyMarketPrices.isCurrent, true)
+          )
+    )
     .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
     .limit(1);
 
-  const latestDateAd = latestDateQuery[0]?.dateAd;
-  const dateInfo = latestDateQuery[0] ? {
-    date_ad: latestDateQuery[0].dateAd,
-    bs_date: `${latestDateQuery[0].bsYear}-${String(latestDateQuery[0].bsMonth).padStart(2, "0")}-${String(latestDateQuery[0].bsDay).padStart(2, "0")}`,
+  const latestDateAd = dateQuery[0]?.dateAd;
+  const dateInfo = dateQuery[0] ? {
+    date_ad: dateQuery[0].dateAd,
+    bs_date: `${dateQuery[0].bsYear}-${String(dateQuery[0].bsMonth).padStart(2, "0")}-${String(dateQuery[0].bsDay).padStart(2, "0")}`,
   } : null;
 
   // 4. Query commodities for this market and this specific latest date

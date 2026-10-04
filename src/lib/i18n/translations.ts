@@ -26,9 +26,9 @@ export const translations = {
   // NAVBAR
   // ============================================================================
   nav_daily_market: { ne: "दैनिक बजार", en: "Daily Market" },
-  nav_what_to_grow: { ne: "🌱 के रोप्ने?", en: "🌱 What to Grow?" },
-  nav_comparison: { ne: "📊 बजार तुलना", en: "📊 Market Comparison" },
-  nav_methodology: { ne: "📖 विधि तथा स्रोत", en: "📖 Methodology & Sources" },
+  nav_what_to_grow: { ne: "के रोप्ने?", en: "What to Grow?" },
+  nav_comparison: { ne: "बजार तुलना", en: "Market Comparison" },
+  nav_methodology: { ne: "विधि तथा स्रोत", en: "Methodology & Sources" },
 
   // ============================================================================
   // FOOTER
@@ -55,8 +55,8 @@ export const translations = {
     en: "Daily prices, historical seasonal cycles, and crop planning decision system from all 12 major federal agricultural wholesale markets in Nepal.",
   },
   home_cta_plan: {
-    ne: "🎯 आफ्नो जग्गा अनुसार बाली सिफारिस हेर्नुहोस् ➔",
-    en: "🎯 Get Crop Recommendations for Your Land ➔",
+    ne: "आफ्नो जग्गा अनुसार बाली सिफारिस हेर्नुहोस् ➔",
+    en: "Get Crop Recommendations for Your Land ➔",
   },
   home_market_label: { ne: "बजार छनोट:", en: "Select Market:" },
   home_listed_commodities: { ne: "सूचीकृत कृषि उपज:", en: "Listed Commodities:" },
@@ -234,7 +234,7 @@ export const translations = {
   // ============================================================================
   commodity_not_found: { ne: "बाली फेला परेन", en: "Commodity Not Found" },
   commodity_market_label: { ne: "बजार:", en: "Market:" },
-  commodity_compare_all: { ne: "📊 सबै बजारमा तुलना गर्नुहोस् ➔", en: "📊 Compare Across All Markets ➔" },
+  commodity_compare_all: { ne: "सबै बजारमा तुलना गर्नुहोस् ➔", en: "Compare Across All Markets ➔" },
   commodity_avg_today: { ne: "आजको औसत मूल्य", en: "Today's Average Price" },
   commodity_min_today: { ne: "न्यूनतम मूल्य", en: "Minimum Price" },
   commodity_max_today: { ne: "अधिकतम मूल्य", en: "Maximum Price" },
@@ -302,9 +302,9 @@ export const translations = {
   },
 
   // Risk Profile
-  risk_daily_volatility: { ne: "📊 दैनिक मूल्य उतारचढाव", en: "📊 Daily Price Volatility" },
+  risk_daily_volatility: { ne: "दैनिक मूल्य उतारचढाव", en: "Daily Price Volatility" },
   risk_daily_desc: { ne: "महिनाभित्र दैनिक मूल्यमा हुने स्वाभाविक घटबढ।", en: "Natural daily price fluctuation within the month." },
-  risk_annual_variability: { ne: "🌱 वर्षगत उत्पादन स्थिरता", en: "🌱 Annual Production Stability" },
+  risk_annual_variability: { ne: "वर्षगत उत्पादन स्थिरता", en: "Annual Production Stability" },
   risk_annual_desc: {
     ne: "प्रत्येक वर्ष यस महिनाको औसत मूल्य कति स्थिर रहन्छ भनी नाप्ने परिसूचक।",
     en: "An indicator measuring how stable the average price of this month remains each year.",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "../../lib/i18n";
+import { AlertTriangle, Target } from "lucide-react";
 
 export default function MethodologyContent() {
   const { t } = useLanguage();
@@ -19,7 +20,7 @@ export default function MethodologyContent() {
 
       <section className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 shadow-xs space-y-3">
         <div className="flex items-start gap-3">
-          <span className="text-2xl">⚠️</span>
+          <AlertTriangle className="h-6 w-6 text-amber-600" aria-hidden="true" />
           <div className="space-y-1.5">
             <h2 className="text-base font-bold text-amber-950">
               {t("meth_scope_title")}
@@ -67,7 +68,7 @@ export default function MethodologyContent() {
       </section>
 
       <section className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-        <SectionHeading icon="🎯" title={t("meth_s4_title")} />
+        <SectionHeading icon={<Target className="h-5 w-5" aria-hidden="true" />} title={t("meth_s4_title")} />
         <p className="text-xs sm:text-sm text-slate-600">{t("meth_s4_desc")}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <CohortCard title={t("meth_cohort_a")} description={t("meth_cohort_a_desc")} color="border-emerald-300 bg-emerald-50/50 text-emerald-900" />
@@ -94,7 +95,7 @@ export default function MethodologyContent() {
   );
 }
 
-function SectionHeading({ icon, title }: { icon: string; title: string }) {
+function SectionHeading({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
     <div className="flex items-center gap-2 text-emerald-800 border-b pb-3">
       <span className="text-xl">{icon}</span>
