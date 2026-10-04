@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "../lib/i18n";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { t, lang, toggleLang } = useLanguage();
 
   const navLinks = [
-    { href: "/", label: "दैनिक बजार (Daily Market)" },
-    { href: "/plan", label: "🌱 के रोप्ने? (What to Grow)" },
-    { href: "/compare", label: "📊 बजार तुलना (Comparison)" },
-    { href: "/methodology", label: "📖 विधि तथा स्रोत (Methodology)" },
+    { href: "/", label: t("nav_daily_market") },
+    { href: "/plan", label: t("nav_what_to_grow") },
+    { href: "/compare", label: t("nav_comparison") },
+    { href: "/methodology", label: t("nav_methodology") },
   ];
 
   return (
@@ -20,30 +22,44 @@ export default function Navbar() {
         <Link href="/" className="flex items-center space-x-2">
           <span className="text-2xl">🌾</span>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-emerald-800">KrishiLens Nepal</h1>
-            <p className="text-[11px] text-slate-500">कृषि बजार मूल्य सूचना तथा निर्णय प्रणाली</p>
+            <h1 className="text-xl font-bold tracking-tight text-emerald-800">{t("brand_name")}</h1>
+            <p className="text-[11px] text-slate-500">{t("brand_tagline")}</p>
           </div>
         </Link>
 
-        {/* Global Navigation Menu */}
-        <nav className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto pb-1 sm:pb-0 text-xs sm:text-sm font-medium">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
-                  isActive
-                    ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 shadow-xs"
-                    : "text-slate-600 hover:text-emerald-700 hover:bg-slate-100"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Global Navigation Menu */}
+          <nav className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto pb-1 sm:pb-0 text-xs sm:text-sm font-medium">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
+                    isActive
+                      ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 shadow-xs"
+                      : "text-slate-600 hover:text-emerald-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Language Toggle Button */}
+          <button
+            id="lang-toggle-btn"
+            onClick={toggleLang}
+            title={lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 text-slate-700 font-bold text-xs sm:text-sm transition-colors whitespace-nowrap"
+            aria-label="Toggle language"
+          >
+            <span className="text-base leading-none">{lang === "ne" ? "🇬🇧" : "🇳🇵"}</span>
+            <span>{t("lang_switch_label")}</span>
+          </button>
+        </div>
       </div>
     </header>
   );

@@ -9,6 +9,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { useLanguage } from "../../../lib/i18n";
 
 interface DailyPricePoint {
   date_label: string; // e.g. "6/12" (BS Month/Day)
@@ -24,41 +25,60 @@ export default function DailyTrendChart({
   data: DailyPricePoint[];
   unit: string;
 }) {
+  const { t, lang, formatPrice, formatNum } = useLanguage();
+
   if (!data || data.length === 0) {
     return (
       <div className="py-12 text-center text-slate-400 text-sm">
-        दैनिक कारोबार तथ्याङ्क उपलब्ध छैन।
+        {t("daily_no_data")}
       </div>
     );
   }
 
+  const chartData = data.map((d) => ({
+    ...d,
+    display_date: formatNum(d.date_label),
+  }));
+
   return (
     <div className="w-full h-72 sm:h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
+        <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-          <XAxis 
-            dataKey="date_label" 
-            tick={{ fill: "#64748b", fontSize: 12 }} 
+          <XAxis
+            dataKey="display_date"
+            tick={{ fill: "#64748b", fontSize: 12 }}
             tickLine={false}
           />
-          <YAxis 
-            tick={{ fill: "#64748b", fontSize: 12 }} 
-            tickFormatter={(value) => `रु.${value}`}
+          <YAxis
+            tick={{ fill: "#64748b", fontSize: 12 }}
+            tickFormatter={(value) => `${t("currency")}${formatNum(value)}`}
             domain={["dataMin - 10", "dataMax + 10"]}
             tickLine={false}
             axisLine={false}
           />
-        <Tooltip 
-  formatter={(value, name) => {
-    const key = String(name ?? "");
-    const label = key === "rep_price" ? "औसत मूल्य" : key === "max_price" ? "अधिकतम" : "न्यूनतम";
-    const val = typeof value === "number" ? value.toFixed(2) : String(value ?? "");
-    return [`रु. ${val}/${unit}`, label];
-  }}
-  labelFormatter={(label) => `मिति: ${label} (वि.सं.)`}
-  contentStyle={{ backgroundColor: "#1e293b", color: "#fff", borderRadius: "8px", border: "none" }}
-/>
+          <Tooltip
+            formatter={(value, name) => {
+              const key = String(name ?? "");
+              const label =
+                key === "rep_price"
+                  ? t("chart_avg_price")
+                  : key === "max_price"
+                  ? t("chart_max")
+                  : t("chart_min");
+              const val = formatPrice(typeof value === "number" ? value : parseFloat(String(value ?? "")));
+              return [`${t("currency")} ${val}/${unit}`, label];
+            }}
+            labelFormatter={(label) =>
+              `${t("chart_date_label")} ${label} ${t("chart_bs_suffix")}`
+            }
+            contentStyle={{
+              backgroundColor: "#1e293b",
+              color: "#fff",
+              borderRadius: "8px",
+              border: "none",
+            }}
+          />
           <Line
             type="monotone"
             dataKey="max_price"
