@@ -2,6 +2,7 @@
 
 import { useState, useEffect, ChangeEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Languages } from "lucide-react";
 import { getCropIconUrl } from "../../lib/crop-icons";
 import { useLanguage } from "../../lib/i18n";
@@ -18,6 +19,7 @@ interface AdminCommodity {
 
 export default function AdminPage() {
   const { lang, toggleLang, t } = useLanguage();
+  const router = useRouter();
   const [commodities, setCommodities] = useState<AdminCommodity[]>([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -134,6 +136,11 @@ export default function AdminPage() {
 
   const categories = Array.from(new Set(commodities.map((c) => c.categoryNe)));
 
+  async function handleLogout() {
+    await fetch("/api/admin/logout", { method: "POST" });
+    router.replace("/admin/login");
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Header */}
@@ -163,6 +170,13 @@ export default function AdminPage() {
             >
               {t("admin_view_site")}
             </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-lg border border-rose-800 bg-rose-900 px-3 py-1.5 text-xs font-bold text-rose-100 transition-colors hover:bg-rose-800"
+            >
+              लगआउट (Logout)
+            </button>
           </div>
         </div>
       </header>
