@@ -2,7 +2,9 @@
 
 import { useState, useEffect, ChangeEvent } from "react";
 import Link from "next/link";
+import { Languages } from "lucide-react";
 import { getCropIconUrl } from "../../lib/crop-icons";
+import { useLanguage } from "../../lib/i18n";
 
 interface AdminCommodity {
   id: number;
@@ -15,6 +17,7 @@ interface AdminCommodity {
 }
 
 export default function AdminPage() {
+  const { lang, toggleLang, t } = useLanguage();
   const [commodities, setCommodities] = useState<AdminCommodity[]>([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -139,16 +142,28 @@ export default function AdminPage() {
           <div className="flex items-center space-x-2">
             <span className="text-xl">⚙️</span>
             <div>
-              <h1 className="font-bold text-base tracking-tight">KrishiLens Admin Panel</h1>
-              <p className="text-[11px] text-slate-400">बाली तस्विर तथा व्यवस्थापन केन्द्र</p>
+              <h1 className="font-bold text-base tracking-tight">{t("admin_title")}</h1>
+              <p className="text-[11px] text-slate-400">{t("admin_subtitle")}</p>
             </div>
           </div>
-          <Link
-            href="/"
-            className="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors border border-slate-700"
-          >
-            ← सार्वजनिक साइट (View Site)
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleLang}
+              title={lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}
+              aria-label="Toggle language"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200 transition-colors hover:bg-slate-700"
+            >
+              <Languages className="h-4 w-4" aria-hidden="true" />
+              <span>{t("lang_switch_label")}</span>
+            </button>
+            <Link
+              href="/"
+              className="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors border border-slate-700"
+            >
+              {t("admin_view_site")}
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -157,20 +172,20 @@ export default function AdminPage() {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">कृषि उपज तस्विर व्यवस्थापन (Device & URL Upload)</h2>
+              <h2 className="text-lg font-bold text-slate-900">{t("admin_image_management")}</h2>
               <p className="text-xs text-slate-500">
-                आफ्नो मोबाइल/कम्प्युटरबाट फोटो छान्नुहोस् वा इन्टरनेटको लिंक पेस्ट गर्नुहोस्। सेभ गरेपछि साइटमा तुरुन्तै देखिनेछ।
+                {t("admin_image_description")}
               </p>
             </div>
             <span className="text-xs font-bold px-3 py-1.5 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 shrink-0">
-              कुल सूचीकृत: {commodities.length} बालीहरू
+              {t("admin_total_listed")}: {commodities.length}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <input
               type="text"
-              placeholder="🔍 बाली खोज्नुहोस् (उदा. गोलभेंडा, आलु, 101.1)..."
+              placeholder={t("admin_search_placeholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border border-slate-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
@@ -181,7 +196,7 @@ export default function AdminPage() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
             >
-              <option value="all">सबै वर्गहरू (All Categories)</option>
+              <option value="all">{t("admin_all_categories")}</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
@@ -197,18 +212,18 @@ export default function AdminPage() {
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-slate-100/75 border-b text-slate-700 text-xs font-semibold uppercase tracking-wider">
-                  <th className="py-3 px-4 w-16 text-center">प्रिभ्यु</th>
-                  <th className="py-3 px-4">कृषि उपज</th>
-                  <th className="py-3 px-4">वर्ग</th>
-                  <th className="py-3 px-4">तस्विर अपलोड वा लिंक (Device / URL)</th>
-                  <th className="py-3 px-4 text-right">कार्य</th>
+                  <th className="py-3 px-4 w-16 text-center">{t("admin_preview")}</th>
+                  <th className="py-3 px-4">{t("admin_commodity")}</th>
+                  <th className="py-3 px-4">{t("admin_category")}</th>
+                  <th className="py-3 px-4">{t("admin_upload_link")}</th>
+                  <th className="py-3 px-4 text-right">{t("admin_actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
                     <td colSpan={5} className="py-12 text-center text-slate-400">
-                      लोड हुँदैछ...
+                      {t("admin_loading")}
                     </td>
                   </tr>
                 ) : filtered.length > 0 ? (
@@ -244,7 +259,7 @@ export default function AdminPage() {
 
                         {/* Category */}
                         <td className="py-3 px-4 text-xs text-slate-600">
-                          <span className="px-2.5 py-1 bg-slate-100 rounded-md border text-slate-700">
+                          <span className="inline-block whitespace-nowrap px-2.5 py-1 bg-slate-100 rounded-md border text-slate-700">
                             {item.categoryNe}
                           </span>
                         </td>
@@ -267,13 +282,13 @@ export default function AdminPage() {
                               className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer border border-slate-300 transition-colors flex items-center justify-center gap-1 shrink-0"
                             >
                               <span>📁</span>
-                              <span>डिभाइसबाट छान्नुहोस्</span>
+                              <span>{t("admin_choose_device")}</span>
                             </label>
 
                             {/* Or paste URL */}
                             <input
                               type="text"
-                              placeholder="वा लिंक पेस्ट गर्नुहोस् (https://...)"
+                              placeholder={t("admin_paste_link")}
                               value={currentUrl.startsWith("data:") ? "[ डिभाइसको फोटो छानियो ]" : currentUrl}
                               onChange={(e) =>
                                 setEditingUrls({ ...editingUrls, [item.code]: e.target.value })
@@ -286,7 +301,7 @@ export default function AdminPage() {
                               <button
                                 type="button"
                                 onClick={() => handleClear(item.code)}
-                                title="तस्विर हटाउनुहोस्"
+                                title={t("admin_remove_image")}
                                 className="px-2 py-1 text-slate-400 hover:text-rose-600 text-xs font-bold transition-colors"
                               >
                                 ✕
@@ -299,14 +314,14 @@ export default function AdminPage() {
                         <td className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             {saveSuccess === item.code && (
-                              <span className="text-xs text-emerald-700 font-bold">✓ सेभ भयो</span>
+                              <span className="text-xs text-emerald-700 font-bold">{t("admin_saved")}</span>
                             )}
                             <button
                               onClick={() => handleSave(item.code)}
                               disabled={savingCode === item.code}
                               className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 shrink-0 shadow-xs"
                             >
-                              {savingCode === item.code ? "सेभ हुँदै..." : "सेभ (Save)"}
+                              {savingCode === item.code ? t("admin_saving") : t("admin_save")}
                             </button>
                           </div>
                         </td>
@@ -316,7 +331,7 @@ export default function AdminPage() {
                 ) : (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-slate-400">
-                      कुनै बाली भेटिएन।
+                      {t("admin_no_commodities")}
                     </td>
                   </tr>
                 )}

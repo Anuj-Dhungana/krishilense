@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BarChart3, MapPin, Sprout } from "lucide-react";
 import { useLanguage, CATEGORY_NE_TO_KEY } from "../../../lib/i18n";
+import { getCropIconUrl } from "../../../lib/crop-icons";
 import IntelligenceTabs from "./intelligence-tabs";
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
     categoryNe: string;
     code: string;
     canonicalUnit: string;
+    imageUrl: string | null;
   };
   market: {
     nameNe: string;
@@ -53,7 +55,7 @@ export default function CommodityPageClient({
   dailyTrendData,
   riskProfile,
 }: Props) {
-  const { t, lang, formatPrice, formatNum } = useLanguage();
+  const { t, lang, formatPrice } = useLanguage();
 
   const commodityName = lang === "ne" ? commodity.nameNe : (commodity.nameEn || commodity.nameNe);
   const marketName = lang === "ne" ? market.nameNe : (market.nameEn || market.nameNe);
@@ -70,13 +72,23 @@ export default function CommodityPageClient({
     <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-            {commodityName}
-          </h1>
+        <div className="flex items-center gap-3">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={commodity.imageUrl || getCropIconUrl(commodity.nameNe, commodity.categoryNe, commodity.code)}
+              alt={commodityName}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              {commodityName}
+            </h1>
           <p className="text-slate-500 text-sm">
             {categoryDisplay} • <MapPin className="inline-block h-4 w-4 text-emerald-700" aria-hidden="true" /> {marketName}
           </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

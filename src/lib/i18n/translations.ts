@@ -529,6 +529,32 @@ export const translations = {
   // LANGUAGE TOGGLE
   // ============================================================================
   lang_switch_label: { ne: "EN", en: "ने" },
+
+  // ADMIN PANEL
+  admin_title: { ne: "KrishiLens व्यवस्थापन केन्द्र", en: "KrishiLens Admin Panel" },
+  admin_subtitle: { ne: "बाली तस्विर तथा व्यवस्थापन केन्द्र", en: "Commodity image and management center" },
+  admin_view_site: { ne: "← सार्वजनिक साइट", en: "← View Site" },
+  admin_image_management: { ne: "कृषि उपज तस्विर व्यवस्थापन", en: "Commodity Image Management" },
+  admin_image_description: {
+    ne: "आफ्नो मोबाइल/कम्प्युटरबाट फोटो छान्नुहोस् वा इन्टरनेटको लिंक पेस्ट गर्नुहोस्। सेभ गरेपछि साइटमा तुरुन्तै देखिनेछ।",
+    en: "Choose a photo from your device or paste an internet link. Save to publish it on the site.",
+  },
+  admin_total_listed: { ne: "कुल सूचीकृत", en: "Total listed" },
+  admin_search_placeholder: { ne: "🔍 बाली खोज्नुहोस्...", en: "🔍 Search commodity..." },
+  admin_all_categories: { ne: "सबै वर्गहरू", en: "All Categories" },
+  admin_preview: { ne: "प्रिभ्यु", en: "Preview" },
+  admin_commodity: { ne: "कृषि उपज", en: "Commodity" },
+  admin_category: { ne: "वर्ग", en: "Category" },
+  admin_upload_link: { ne: "तस्विर अपलोड वा लिंक", en: "Image Upload or Link" },
+  admin_actions: { ne: "कार्य", en: "Actions" },
+  admin_loading: { ne: "लोड हुँदैछ...", en: "Loading..." },
+  admin_choose_device: { ne: "डिभाइसबाट छान्नुहोस्", en: "Choose from device" },
+  admin_paste_link: { ne: "वा लिंक पेस्ट गर्नुहोस् (https://...)", en: "Or paste link (https://...)" },
+  admin_remove_image: { ne: "तस्विर हटाउनुहोस्", en: "Remove image" },
+  admin_saved: { ne: "✓ सेभ भयो", en: "✓ Saved" },
+  admin_saving: { ne: "सेभ हुँदै...", en: "Saving..." },
+  admin_save: { ne: "सेभ", en: "Save" },
+  admin_no_commodities: { ne: "कुनै बाली भेटिएन।", en: "No commodities found." },
 } as const;
 
 // Category mapping: maps the DB categoryNe value to a translation key

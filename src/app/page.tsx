@@ -61,6 +61,7 @@ export default async function Home({
       bsYear: schema.canonicalDailyMarketPrices.bsYear,
       bsMonth: schema.canonicalDailyMarketPrices.bsMonth,
       bsDay: schema.canonicalDailyMarketPrices.bsDay,
+      createdAt: schema.canonicalDailyMarketPrices.createdAt,
     })
     .from(schema.canonicalDailyMarketPrices)
     .where(
@@ -75,13 +76,17 @@ export default async function Home({
             eq(schema.canonicalDailyMarketPrices.isCurrent, true)
           )
     )
-    .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
+    .orderBy(
+      desc(schema.canonicalDailyMarketPrices.dateAd),
+      desc(schema.canonicalDailyMarketPrices.createdAt)
+    )
     .limit(1);
 
   const latestDateAd = dateQuery[0]?.dateAd;
   const dateInfo = dateQuery[0] ? {
     date_ad: dateQuery[0].dateAd,
     bs_date: `${dateQuery[0].bsYear}-${String(dateQuery[0].bsMonth).padStart(2, "0")}-${String(dateQuery[0].bsDay).padStart(2, "0")}`,
+    updated_at: dateQuery[0].createdAt.toISOString(),
   } : null;
 
   // 4. Query commodities for this market and this specific latest date

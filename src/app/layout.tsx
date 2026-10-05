@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "../lib/i18n";
+import { SiteFooter } from "../components/site-chrome";
 import SiteChrome from "../components/site-chrome";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -24,6 +25,8 @@ export default function RootLayout({
 
           {/* Screen Page Content */}
           <div className="flex-1">{children}</div>
+
+          <SiteFooter />
         </LanguageProvider>
       </body>
     </html>

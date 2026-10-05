@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLanguage } from "../../lib/i18n";
 
 interface CommodityItem {
@@ -38,9 +39,10 @@ interface CompareResponse {
 }
 
 export default function ComparePage() {
-  const { t, lang, formatPrice, formatNum } = useLanguage();
+  const { t, lang, formatPrice } = useLanguage();
+  const searchParams = useSearchParams();
   const [commoditiesList, setCommoditiesList] = useState<CommodityItem[]>([]);
-  const [commodity, setCommodity] = useState("101.1");
+  const [commodity, setCommodity] = useState(() => searchParams.get("commodity") || "101.1");
   const [baseMarket, setBaseMarket] = useState("kalimati");
   const [data, setData] = useState<CompareResponse | null>(null);
   const [loading, setLoading] = useState(true);

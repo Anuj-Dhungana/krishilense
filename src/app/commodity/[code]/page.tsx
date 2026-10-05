@@ -118,6 +118,7 @@ export default async function CommodityPage({
         categoryNe: currentComm.categoryNe,
         code: currentComm.code,
         canonicalUnit: currentComm.canonicalUnit,
+        imageUrl: currentComm.imageUrl,
       }}
       market={{
         nameNe: currentMarket.nameNe,

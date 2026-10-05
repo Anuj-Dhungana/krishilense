@@ -35,7 +35,7 @@ interface Props {
   activeMarketSlug: string;
   activeCategory: string; // "all" or Nepali category string
   currentMarket: MarketItem | null;
-  dateInfo: { date_ad: string; bs_date: string } | null;
+  dateInfo: { date_ad: string; bs_date: string; updated_at: string } | null;
   categoryPills: CategoryPill[];
   filteredPrices: PriceRow[];
 }
@@ -57,7 +57,7 @@ export default function HomeClient({
   categoryPills,
   filteredPrices,
 }: Props) {
-  const { t, lang, formatPrice, formatCount, formatDate, formatNum } = useLanguage();
+  const { t, lang, formatPrice, formatCount, formatDate } = useLanguage();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [unit, setUnit] = useState("all");
@@ -69,10 +69,31 @@ export default function HomeClient({
       : currentMarket?.name_en || "Agricultural Wholesale Market";
 
   const units = Array.from(new Set(filteredPrices.map((item) => item.canonical_unit))).filter(Boolean);
-  const averagePrice = filteredPrices.length
-    ? filteredPrices.reduce((sum, item) => sum + Number(item.representative_price), 0) / filteredPrices.length
-    : 0;
+  const cheapestItem = filteredPrices.reduce<PriceRow | null>(
+    (cheapest, item) =>
+      !cheapest || Number(item.representative_price) < Number(cheapest.representative_price)
+        ? item
+        : cheapest,
+    null
+  );
+  const mostExpensiveItem = filteredPrices.reduce<PriceRow | null>(
+    (mostExpensive, item) =>
+      !mostExpensive || Number(item.representative_price) > Number(mostExpensive.representative_price)
+        ? item
+        : mostExpensive,
+    null
+  );
+  const getItemName = (item: PriceRow | null) =>
+    item ? (lang === "ne" ? item.commodity_name_ne : item.commodity_name_en || item.commodity_name_ne) : "—";
   const latestUpdate = dateInfo?.date_ad ? formatDate(dateInfo.date_ad) : t("home_today");
+  const latestUpdateBs = dateInfo?.bs_date ? formatDate(dateInfo.bs_date) : "—";
+  const updatedTime = dateInfo
+    ? new Intl.DateTimeFormat(lang === "ne" ? "ne-NP" : "en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(new Date(dateInfo.updated_at))
+    : "";
   const visiblePrices = filteredPrices.filter((item) => {
     const query = search.trim().toLowerCase();
     const matchesSearch = !query || [item.commodity_name_en, item.commodity_name_ne, item.commodity_code]
@@ -108,16 +129,24 @@ export default function HomeClient({
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
             <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />{currentMarket?.district.name_en || "Nepal"}</span>
             <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />{latestUpdate}</span>
-            <span className="text-slate-400">{lang === "ne" ? "(आजको बजार)" : "(Updated today)"}</span>
+            <span className="text-slate-400">
+              {updatedTime ? (lang === "ne" ? `(${updatedTime} मा अपडेट)` : `(Updated ${updatedTime})`) : ""}
+            </span>
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <SummaryCard icon={<Leaf className="h-5 w-5" />} label={lang === "ne" ? "कुल कृषि उपज" : "Total Commodities"} value={formatCount(filteredPrices.length)} detail={lang === "ne" ? "आज सूचीकृत" : "items listed today"} />
-        <SummaryCard icon={<Tag className="h-5 w-5" />} label={lang === "ne" ? "औसत मूल्य" : "Average Price"} value={`${t("currency")} ${formatPrice(averagePrice)}`} detail={lang === "ne" ? "आजको बजार औसत" : "today's market average"} />
+        <SummaryCard icon={<Tag className="h-5 w-5" />} label={lang === "ne" ? "सबैभन्दा सस्तो" : "Cheapest Item"} value={cheapestItem ? `${t("currency")} ${formatPrice(cheapestItem.representative_price)}` : "—"} detail={getItemName(cheapestItem)} />
+        <SummaryCard icon={<TrendingUp className="h-5 w-5" />} label={lang === "ne" ? "सबैभन्दा महँगो" : "Most Expensive Item"} value={mostExpensiveItem ? `${t("currency")} ${formatPrice(mostExpensiveItem.representative_price)}` : "—"} detail={getItemName(mostExpensiveItem)} />
         <SummaryCard icon={<Store className="h-5 w-5" />} label={lang === "ne" ? "कुल बजार" : "Total Markets"} value={formatCount(marketsList.length)} detail={lang === "ne" ? "सम्बन्धित बजार" : "connected markets"} />
-        <SummaryCard icon={<CalendarDays className="h-5 w-5" />} label={lang === "ne" ? "पछिल्लो अपडेट" : "Latest Update"} value={latestUpdate} detail={dateInfo?.bs_date ? formatDate(dateInfo.bs_date) : ""} />
+        <SummaryCard
+          icon={<CalendarDays className="h-5 w-5" />}
+          label={lang === "ne" ? "पछिल्लो अपडेट" : "Latest Update"}
+          value={latestUpdateBs}
+          detail={updatedTime ? (lang === "ne" ? `${updatedTime} मा अपडेट` : `Updated ${updatedTime}`) : latestUpdate}
+        />
       </section>
 
       <form onSubmit={applyFilters} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_0.8fr_0.9fr_auto] gap-3 items-end">

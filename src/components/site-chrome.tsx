@@ -7,16 +7,18 @@ import FooterClient from "./footer-client";
 export default function SiteChrome() {
   const pathname = usePathname();
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  return isAdminRoute ? null : <Navbar />;
+}
+
+export function SiteFooter() {
+  const pathname = usePathname();
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
   const isHomeRoute = pathname === "/";
 
-  if (isAdminRoute) {
+  if (isAdminRoute || isHomeRoute) {
     return null;
   }
 
-  return (
-    <>
-      <Navbar />
-      {!isHomeRoute && <FooterClient />}
-    </>
-  );
+  return <FooterClient />;
 }
