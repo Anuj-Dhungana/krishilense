@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useLanguage } from "../../lib/i18n";
 
 interface CommodityItem {
@@ -38,7 +39,7 @@ interface CompareResponse {
   mandatory_disclaimer_ne?: string;
 }
 
-export default function ComparePage() {
+function CompareContent() {
   const { t, lang, formatPrice } = useLanguage();
   const searchParams = useSearchParams();
   const [commoditiesList, setCommoditiesList] = useState<CommodityItem[]>([]);
@@ -56,6 +57,7 @@ export default function ComparePage() {
         if (json.success && json.data) {
           setCommoditiesList(json.data);
         }
+
       } catch (err: unknown) {
         console.error("Failed to load commodities list:", err);
       }
@@ -265,5 +267,21 @@ export default function ComparePage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-slate-50 px-4 py-12 text-center text-slate-500">
+      Loading comparison...
+    </div>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <CompareContent />
+    </Suspense>
   );
 }
