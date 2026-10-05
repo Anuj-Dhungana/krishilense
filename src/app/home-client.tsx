@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarDays, Filter, Leaf, MapPin, Search, Store, Tag, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useLanguage, CATEGORY_NE_TO_KEY, type TranslationKey } from "../lib/i18n";
+import { getCropIconUrl } from "../lib/crop-icons";
 
 type PriceRow = {
   id: number;
@@ -13,6 +14,7 @@ type PriceRow = {
   commodity_name_ne: string;
   category_ne: string;
   canonical_unit: string;
+  image_url: string | null;
   min_price: string;
   max_price: string;
   representative_price: string;
@@ -177,6 +179,7 @@ export default function HomeClient({
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-100/75 border-b text-slate-700 font-semibold">
+                <th className="py-3 px-4 w-16 text-center">प्रिभ्यु</th>
                 <th className="py-3 px-4">{t("th_commodity")}</th>
                 <th className="py-3 px-4">{t("th_category")}</th>
                 <th className="py-3 px-4">{t("th_unit")}</th>
@@ -199,6 +202,15 @@ export default function HomeClient({
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/75 transition-colors">
+                      <td className="py-3 px-4 text-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.image_url || getCropIconUrl(item.commodity_name_ne, item.category_ne, item.commodity_code)}
+                          alt={item.commodity_name_ne}
+                          className="mx-auto h-12 w-12 rounded-lg object-cover"
+                          loading="lazy"
+                        />
+                      </td>
                       <td className="py-3 px-4 font-medium text-slate-900">
                         <Link
                           href={`/commodity/${item.commodity_code}?market=${activeMarketSlug}`}
@@ -228,7 +240,7 @@ export default function HomeClient({
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     {t("home_empty_category")}
                   </td>
                 </tr>

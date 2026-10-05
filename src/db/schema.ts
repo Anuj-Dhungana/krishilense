@@ -107,6 +107,7 @@ export const ampisCommodities = pgTable("ampis_commodities", {
   categoryEn: text("category_en").notNull(),
   categoryNe: text("category_ne").notNull(),
   canonicalUnit: text("canonical_unit").notNull().default("kg"),
+  imageUrl: text("image_url"),
   isPriorityTier1: boolean("is_priority_tier1").default(false).notNull(),
 });
 

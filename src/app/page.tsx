@@ -92,6 +92,7 @@ export default async function Home({
     commodity_name_ne: string;
     category_ne: string;
     canonical_unit: string;
+    image_url: string | null;
     min_price: string;
     max_price: string;
     representative_price: string;
@@ -107,6 +108,7 @@ export default async function Home({
         commodity_name_ne: schema.ampisCommodities.nameNe,
         category_ne: schema.ampisCommodities.categoryNe,
         canonical_unit: schema.canonicalDailyMarketPrices.canonicalUnit,
+        image_url: schema.ampisCommodities.imageUrl,
         min_price: schema.canonicalDailyMarketPrices.minPrice,
         max_price: schema.canonicalDailyMarketPrices.maxPrice,
         representative_price: schema.canonicalDailyMarketPrices.representativePrice,
