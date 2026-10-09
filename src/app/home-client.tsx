@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CalendarDays, Filter, Leaf, MapPin, Search, Store, Tag, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLanguage, CATEGORY_NE_TO_KEY, type TranslationKey } from "../lib/i18n";
 import { getCropIconUrl } from "../lib/crop-icons";
 
@@ -88,6 +88,8 @@ export default function HomeClient({
   const [search, setSearch] = useState("");
   const [unit, setUnit] = useState("all");
   const [date, setDate] = useState(dateInfo?.date_ad || "");
+  const [showPriceScrollbar, setShowPriceScrollbar] = useState(false);
+  const scrollbarTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const marketDisplayName =
     lang === "ne"
@@ -135,6 +137,12 @@ export default function HomeClient({
     if (activeCategory !== "all") params.set("category", activeCategory);
     if (date) params.set("date", date);
     router.push(`/?${params.toString()}`);
+  }
+
+  function handlePriceListScroll() {
+    setShowPriceScrollbar(true);
+    if (scrollbarTimeout.current) clearTimeout(scrollbarTimeout.current);
+    scrollbarTimeout.current = setTimeout(() => setShowPriceScrollbar(false), 900);
   }
 
   return (
@@ -235,10 +243,14 @@ export default function HomeClient({
 
       {/* Price Table Card */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div
+          className="price-list-scroll max-h-[680px] overflow-auto"
+          data-scrolling={showPriceScrollbar ? "true" : undefined}
+          onScroll={handlePriceListScroll}
+        >
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-100/75 border-b text-slate-700 font-semibold">
+              <tr className="sticky top-0 z-10 bg-slate-100/95 border-b text-slate-700 font-semibold">
                 <th className="py-3 px-4 w-16 text-center">{lang === "ne" ? "प्रिभ्यु" : "Preview"}</th>
                 <th className="py-3 px-4">{t("th_commodity")}</th>
                 <th className="py-3 px-4">{t("th_category")}</th>
