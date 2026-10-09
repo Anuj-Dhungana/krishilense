@@ -128,6 +128,8 @@ export default async function CommodityPage({
         representativePrice: parseFloat(today.representativePrice),
         minPrice: parseFloat(today.minPrice),
         maxPrice: parseFloat(today.maxPrice),
+        sourceSystem: today.sourceSystem,
+        sourceLabel: today.sourceLabel,
       } : null}
       hasSeasonalBaselines={hasSeasonalBaselines}
       seasonalCurve={seasonalCurve}

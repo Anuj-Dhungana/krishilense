@@ -165,18 +165,19 @@ async function runAmpisIngestion() {
           INSERT INTO canonical_daily_market_prices (
             market_id, ampis_commodity_id, date_ad, bs_year, bs_month, bs_day,
             min_price, max_price, representative_price, price_measure_type,
-            canonical_unit, version, is_current, source_observation_id
+            canonical_unit, source_system, version, is_current, source_observation_id
           ) VALUES (
             ${marketId}, ${commId}, ${dateAdStr}, ${bsYear}, ${bsMonth}, ${bsDay},
             ${min.toFixed(2)}, ${max.toFixed(2)}, ${rep.toFixed(2)},
             ${"ARITHMETIC_MEAN"},
-            ${row.unit || "kg"}, 1, true, ${obsId}
+            ${row.unit || "kg"}, ${"AMPIS"}, 1, true, ${obsId}
           )
           ON CONFLICT (market_id, ampis_commodity_id, date_ad) WHERE is_current = true
           DO UPDATE SET
             min_price = EXCLUDED.min_price,
             max_price = EXCLUDED.max_price,
-            representative_price = EXCLUDED.representative_price;
+            representative_price = EXCLUDED.representative_price,
+            source_system = EXCLUDED.source_system;
         `;
 
       }

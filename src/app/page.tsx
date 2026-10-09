@@ -101,6 +101,8 @@ export default async function Home({
     min_price: string;
     max_price: string;
     representative_price: string;
+    source_system: string;
+    source_label: string | null;
   };
 
   let rawPrices: PriceRow[] = [];
@@ -117,6 +119,8 @@ export default async function Home({
         min_price: schema.canonicalDailyMarketPrices.minPrice,
         max_price: schema.canonicalDailyMarketPrices.maxPrice,
         representative_price: schema.canonicalDailyMarketPrices.representativePrice,
+        source_system: schema.canonicalDailyMarketPrices.sourceSystem,
+        source_label: schema.canonicalDailyMarketPrices.sourceLabel,
       })
       .from(schema.canonicalDailyMarketPrices)
       .innerJoin(schema.ampisCommodities, eq(schema.canonicalDailyMarketPrices.ampisCommodityId, schema.ampisCommodities.id))
@@ -135,12 +139,12 @@ export default async function Home({
     if (cat) categoryCounts.set(cat, (categoryCounts.get(cat) || 0) + 1);
   }
 
-  // Build category pills — labelNe is the raw DB category string used in URL params
+  // Keep every known category visible, even when the selected market has no
+  // price row for it on the current date.
   const categoryPills = [
     { labelNe: ALL_SENTINEL, count: rawPrices.length },
     ...CATEGORIES_NE
-      .filter((cat) => categoryCounts.has(cat))
-      .map((cat) => ({ labelNe: cat, count: categoryCounts.get(cat)! })),
+      .map((cat) => ({ labelNe: cat, count: categoryCounts.get(cat) || 0 })),
     // Any categories in DB not in our known list
     ...Array.from(categoryCounts.keys())
       .filter((cat) => !CATEGORIES_NE.includes(cat))

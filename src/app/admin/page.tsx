@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Languages } from "lucide-react";
 import { getCropIconUrl } from "../../lib/crop-icons";
-import { useLanguage } from "../../lib/i18n";
+import { CATEGORY_NE_TO_KEY, useLanguage } from "../../lib/i18n";
 
 interface AdminCommodity {
   id: number;
@@ -15,6 +15,23 @@ interface AdminCommodity {
   categoryNe: string;
   canonicalUnit: string;
   imageUrl: string | null;
+}
+
+interface AdminMarket {
+  id: number;
+  slug: string;
+  nameNe: string;
+  nameEn: string;
+}
+
+interface AdminPrice {
+  marketId: number;
+  commodityCode: string;
+  minPrice: string;
+  maxPrice: string;
+  representativePrice: string;
+  sourceSystem: string;
+  sourceLabel: string | null;
 }
 
 export default function AdminPage() {
@@ -27,6 +44,18 @@ export default function AdminPage() {
   const [savingCode, setSavingCode] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [markets, setMarkets] = useState<AdminMarket[]>([]);
+  const [adminPrices, setAdminPrices] = useState<AdminPrice[]>([]);
+  const [priceForm, setPriceForm] = useState({
+    marketSlug: "",
+    commodityCode: "",
+    minPrice: "",
+    maxPrice: "",
+    representativePrice: "",
+    sourceLabel: "",
+  });
+  const [priceSaving, setPriceSaving] = useState(false);
+  const [priceMessage, setPriceMessage] = useState("");
 
   useEffect(() => {
     async function fetchList() {
@@ -50,6 +79,69 @@ export default function AdminPage() {
     }
     fetchList();
   }, []);
+
+  useEffect(() => {
+    async function fetchPrices() {
+      try {
+        const res = await fetch("/api/admin/prices");
+        const json = await res.json();
+        if (json.success && json.data) {
+          setMarkets(json.data.markets);
+          setAdminPrices(json.data.prices);
+          setPriceForm((current) => ({
+            ...current,
+            marketSlug: current.marketSlug || json.data.markets[0]?.slug || "",
+            commodityCode: current.commodityCode || json.data.commodities[0]?.code || "",
+          }));
+        }
+      } catch (error: unknown) {
+        console.error("Failed to load admin prices:", error);
+      }
+    }
+    fetchPrices();
+  }, []);
+
+  function updatePriceSelection(field: "marketSlug" | "commodityCode", value: string) {
+    const nextForm = { ...priceForm, [field]: value };
+    const nextMarket = markets.find((market) => market.slug === nextForm.marketSlug);
+    const nextPrice = adminPrices.find(
+      (price) => price.marketId === nextMarket?.id && price.commodityCode === nextForm.commodityCode
+    );
+    setPriceForm({
+      ...nextForm,
+      minPrice: nextPrice?.minPrice || "",
+      maxPrice: nextPrice?.maxPrice || "",
+      representativePrice: nextPrice?.representativePrice || "",
+      sourceLabel: nextPrice?.sourceLabel || "",
+    });
+  }
+
+  async function handlePriceSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPriceSaving(true);
+    setPriceMessage("");
+    try {
+      const response = await fetch("/api/admin/prices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(priceForm),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        setPriceMessage(result.error || "Price could not be saved.");
+        return;
+      }
+      setPriceMessage("मूल्य पोस्ट भयो (Price saved)");
+      const refreshed = await fetch("/api/admin/prices");
+      const refreshedJson = await refreshed.json();
+      if (refreshedJson.success) setAdminPrices(refreshedJson.data.prices);
+    } catch (error: unknown) {
+      console.error("Failed to save admin price:", error);
+      setPriceMessage("मूल्य सेभ गर्न सकिएन (Could not save price).");
+    } finally {
+      setPriceSaving(false);
+    }
+  }
 
   // Handle direct file upload to Cloudinary CDN
   async function handleDeviceFileUpload(code: string, e: ChangeEvent<HTMLInputElement>) {
@@ -135,6 +227,10 @@ export default function AdminPage() {
   });
 
   const categories = Array.from(new Set(commodities.map((c) => c.categoryNe)));
+  const translateCategory = (categoryNe: string) => {
+    const key = CATEGORY_NE_TO_KEY[categoryNe];
+    return key ? t(key) : categoryNe;
+  };
 
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -182,6 +278,61 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        <section className="bg-white p-5 rounded-2xl border border-blue-200 shadow-xs space-y-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">दैनिक मूल्य व्यवस्थापन (Daily Price Overrides / Benchmarks)</h2>
+            <p className="text-xs text-slate-500">
+              AMPIS मा नआएको वस्तुका लागि आधिकारिक सन्दर्भ मूल्य पोस्ट गर्नुहोस्।
+              (Post a verified fallback price when AMPIS has no value.)
+            </p>
+          </div>
+          <form onSubmit={handlePriceSave} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <select
+              required
+              value={priceForm.marketSlug}
+              onChange={(event) => updatePriceSelection("marketSlug", event.target.value)}
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">बजार छान्नुहोस् (Select market)</option>
+              {markets.map((market) => (
+                <option key={market.slug} value={market.slug}>{market.nameNe} / {market.nameEn}</option>
+              ))}
+            </select>
+            <select
+              required
+              value={priceForm.commodityCode}
+              onChange={(event) => updatePriceSelection("commodityCode", event.target.value)}
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">वस्तु छान्नुहोस् (Select commodity)</option>
+              {commodities.map((commodity) => (
+                <option key={commodity.code} value={commodity.code}>
+                  {commodity.categoryNe} — {commodity.nameNe} / {commodity.nameEn}
+                </option>
+              ))}
+            </select>
+            <input required type="number" min="0" step="0.01" placeholder="न्यूनतम (Minimum)"
+              value={priceForm.minPrice} onChange={(event) => setPriceForm({ ...priceForm, minPrice: event.target.value })}
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+            <input required type="number" min="0" step="0.01" placeholder="अधिकतम (Maximum)"
+              value={priceForm.maxPrice} onChange={(event) => setPriceForm({ ...priceForm, maxPrice: event.target.value })}
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+            <input required type="number" min="0" step="0.01" placeholder="प्रतिनिधि मूल्य (Representative)"
+              value={priceForm.representativePrice} onChange={(event) => setPriceForm({ ...priceForm, representativePrice: event.target.value })}
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+            <input type="text" placeholder="स्रोत (Source label, e.g. DDC / MSP)"
+              value={priceForm.sourceLabel} onChange={(event) => setPriceForm({ ...priceForm, sourceLabel: event.target.value })}
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+            <div className="flex items-center gap-3 lg:col-span-3">
+              <button type="submit" disabled={priceSaving}
+                className="rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+                {priceSaving ? "सेभ हुँदैछ..." : "मूल्य पोस्ट गर्नुहोस् (Save Price)"}
+              </button>
+              {priceMessage && <span className="text-sm text-slate-600">{priceMessage}</span>}
+            </div>
+          </form>
+        </section>
+
         {/* Controls Card */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -213,7 +364,7 @@ export default function AdminPage() {
               <option value="all">{t("admin_all_categories")}</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
-                  {cat}
+                  {translateCategory(cat)}
                 </option>
               ))}
             </select>
@@ -274,7 +425,7 @@ export default function AdminPage() {
                         {/* Category */}
                         <td className="py-3 px-4 text-xs text-slate-600">
                           <span className="inline-block whitespace-nowrap px-2.5 py-1 bg-slate-100 rounded-md border text-slate-700">
-                            {item.categoryNe}
+                            {translateCategory(item.categoryNe)}
                           </span>
                         </td>
 

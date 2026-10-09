@@ -18,6 +18,7 @@ type PriceRow = {
   min_price: string;
   max_price: string;
   representative_price: string;
+  source_system: string;
 };
 
 type MarketItem = {
@@ -300,7 +301,9 @@ export default function HomeClient({
               ) : (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    {t("home_empty_category")}
+                    {lang === "ne"
+                      ? "तथ्याङ्क अद्यावधिक हुन बाँकी"
+                      : "Data update pending"}
                   </td>
                 </tr>
               )}

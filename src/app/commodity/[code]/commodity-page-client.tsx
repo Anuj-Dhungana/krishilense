@@ -23,6 +23,8 @@ interface Props {
     representativePrice: number;
     minPrice: number;
     maxPrice: number;
+    sourceSystem: string;
+    sourceLabel: string | null;
   } | null;
   hasSeasonalBaselines: boolean;
   seasonalCurve: {

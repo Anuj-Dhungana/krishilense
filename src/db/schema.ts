@@ -226,6 +226,8 @@ export const canonicalDailyMarketPrices = pgTable("canonical_daily_market_prices
   representativePrice: numeric("representative_price", { precision: 10, scale: 2 }).notNull(),
   priceMeasureType: priceMeasureTypeEnum("price_measure_type").notNull(),
   canonicalUnit: text("canonical_unit").notNull().default("kg"),
+  sourceSystem: text("source_system").notNull().default("AMPIS"),
+  sourceLabel: text("source_label"),
   version: integer("version").notNull().default(1),
   isCurrent: boolean("is_current").notNull().default(true),
   supersededById: integer("superseded_by_id").references((): AnyPgColumn => canonicalDailyMarketPrices.id),
