@@ -2,7 +2,9 @@ name: Daily Market Ingestion
 
 on:
   schedule:
-    # 07:15 UTC = 1:00 PM Nepal Time (Runs automatically every day!)
+    # 04:15 UTC = 10:00 AM Nepal Time
+    - cron: '15 4 * * *'
+    # 07:15 UTC = 1:00 PM Nepal Time
     - cron: '15 7 * * *'
   workflow_dispatch: # Allows 1-click manual trigger anytime from GitHub
 
