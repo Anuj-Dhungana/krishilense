@@ -147,10 +147,14 @@ export default function HomeClient({
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-      <section className="relative min-h-[150px] overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50 px-6 py-5 shadow-sm sm:px-8">
+      <section className="relative min-h-[160px] overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50 px-6 py-6 shadow-sm sm:px-8">
         <div
-          className="pointer-events-none absolute inset-0 bg-contain bg-right bg-no-repeat"
+          className="pointer-events-none absolute inset-0 bg-cover bg-right bg-no-repeat"
           style={{ backgroundImage: "url('/banner.jpg')" }}
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-emerald-50 via-emerald-50/90 to-emerald-50/10 sm:via-emerald-50/80 sm:to-transparent"
           aria-hidden="true"
         />
         <div className="relative z-10 max-w-2xl">
