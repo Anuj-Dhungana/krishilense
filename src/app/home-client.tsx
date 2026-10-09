@@ -48,6 +48,31 @@ function translateCategoryLabel(labelNe: string, t: (k: TranslationKey) => strin
   return labelNe; // Fallback for unknown categories
 }
 
+// Localize measurement units
+function formatUnit(unitStr: string, lang: "ne" | "en"): string {
+  if (!unitStr) return "—";
+  const u = unitStr.trim().toLowerCase();
+  if (lang === "ne") {
+    if (u === "kg" || u === "के.जी." || u === "केजी") return "के.जी.";
+    if (u === "gm" || u === "ग्राम") return "ग्राम";
+    if (u === "piece" || u === "वटा" || u === "गोटा") return "वटा";
+    if (u === "dozen" || u === "दर्जन") return "दर्जन";
+    if (u === "litre" || u === "liter" || u === "लिटर") return "लिटर";
+    if (u === "crate" || u === "क्रेट") return "क्रेट";
+    if (u === "bora" || u === "बोरा") return "बोरा";
+    return unitStr;
+  } else {
+    if (u === "के.जी." || u === "केजी" || u === "kg") return "kg";
+    if (u === "ग्राम" || u === "gm") return "gm";
+    if (u === "वटा" || u === "गोटा" || u === "piece") return "piece";
+    if (u === "दर्जन" || u === "dozen") return "dozen";
+    if (u === "लिटर" || u === "litre" || u === "liter") return "litre";
+    if (u === "क्रेट" || u === "crate") return "crate";
+    if (u === "बोरा" || u === "bora") return "sack";
+    return unitStr;
+  }
+}
+
 export default function HomeClient({
   marketsList,
   activeMarketSlug,
@@ -121,13 +146,18 @@ export default function HomeClient({
         />
         <div className="relative z-10 max-w-2xl">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
-            Fresh Produce · Fair Prices · Stronger Farmers
+            {lang === "ne"
+              ? "ताजा कृषि उपज · उचित मूल्य · समृद्ध किसान"
+              : "Fresh Produce · Fair Prices · Stronger Farmers"}
           </p>
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-emerald-950 sm:text-3xl">
             {marketDisplayName}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
-            <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />{currentMarket?.district.name_en || "Nepal"}</span>
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />
+              {lang === "ne" ? (currentMarket?.district.name_ne || "नेपाल") : (currentMarket?.district.name_en || "Nepal")}
+            </span>
             <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />{latestUpdate}</span>
             <span className="text-slate-400">
               {updatedTime ? (lang === "ne" ? `(${updatedTime} मा अपडेट)` : `(Updated ${updatedTime})`) : ""}
@@ -162,7 +192,7 @@ export default function HomeClient({
         </label>
 
         <label className="text-[10px] font-semibold text-slate-500">
-          {lang === "ne" ? "वर्ग" : "Commodity / Category"}
+          {lang === "ne" ? "वर्ग" : "Category"}
           <select value={activeCategory} onChange={(event) => router.push(`/?market=${activeMarketSlug}&category=${encodeURIComponent(event.target.value)}`)} className="mt-1 w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700">
             {categoryPills.map(({ labelNe }) => <option key={labelNe} value={labelNe}>{translateCategoryLabel(labelNe, t)}</option>)}
           </select>
@@ -179,7 +209,7 @@ export default function HomeClient({
           {lang === "ne" ? "इकाइ" : "Unit"}
           <select value={unit} onChange={(event) => setUnit(event.target.value)} className="mt-1 w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700">
             <option value="all">{lang === "ne" ? "सबै इकाइ" : "All Units"}</option>
-            {units.map((itemUnit) => <option key={itemUnit} value={itemUnit}>{itemUnit}</option>)}
+            {units.map((itemUnit) => <option key={itemUnit} value={itemUnit}>{formatUnit(itemUnit, lang)}</option>)}
           </select>
         </label>
 
@@ -208,7 +238,7 @@ export default function HomeClient({
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-100/75 border-b text-slate-700 font-semibold">
-                <th className="py-3 px-4 w-16 text-center">प्रिभ्यु</th>
+                <th className="py-3 px-4 w-16 text-center">{lang === "ne" ? "प्रिभ्यु" : "Preview"}</th>
                 <th className="py-3 px-4">{t("th_commodity")}</th>
                 <th className="py-3 px-4">{t("th_category")}</th>
                 <th className="py-3 px-4">{t("th_unit")}</th>
@@ -254,7 +284,7 @@ export default function HomeClient({
                         </Link>
                       </td>
                       <td className="py-3 px-4 text-slate-600">{categoryDisplay}</td>
-                      <td className="py-3 px-4 text-slate-600">{item.canonical_unit}</td>
+                      <td className="py-3 px-4 text-slate-600">{formatUnit(item.canonical_unit, lang)}</td>
                       <td className="py-3 px-4 text-right text-slate-600 font-mono">
                         {t("currency")} {formatPrice(item.min_price)}
                       </td>

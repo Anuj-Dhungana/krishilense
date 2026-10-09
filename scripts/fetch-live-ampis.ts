@@ -4,6 +4,8 @@ import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "../src/db/schema";
 import NepaliDate from "nepali-date-converter";
 import * as dotenv from "dotenv";
+import { eq } from "drizzle-orm";
+import { COMMODITY_EN_MAP } from "../src/lib/ingestion/commodity-translations";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
@@ -117,17 +119,19 @@ async function runAmpisIngestion() {
       console.log(`  ✓ Extracted ${parsedRows.length} live commodities from AMPIS for ${slug}`);
 
       for (const row of parsedRows) {
-        let commId = commMap.get(row.commodityNameNe);
+        const trimmedName = row.commodityNameNe.trim();
+        let commId = commMap.get(trimmedName);
 
         // Auto-register new commodities if encountered
         if (!commId) {
           const generatedCode = `AMPIS-${Math.floor(100 + Math.random() * 900)}`;
+          const englishName = COMMODITY_EN_MAP[trimmedName] || trimmedName;
           const [newComm] = await db
             .insert(schema.ampisCommodities)
             .values({
               code: generatedCode,
-              nameEn: row.commodityNameNe,
-              nameNe: row.commodityNameNe,
+              nameEn: englishName,
+              nameNe: trimmedName,
               categoryEn: row.categoryNe,
               categoryNe: row.categoryNe,
               canonicalUnit: row.unit || "kg",
@@ -138,9 +142,16 @@ async function runAmpisIngestion() {
 
           if (newComm) {
             commId = newComm.id;
-            commMap.set(row.commodityNameNe, commId);
+            commMap.set(trimmedName, commId);
           } else {
-            continue;
+            // If already exists under another code
+            const existing = await db.select().from(schema.ampisCommodities).where(eq(schema.ampisCommodities.nameNe, trimmedName)).limit(1);
+            if (existing[0]) {
+              commId = existing[0].id;
+              commMap.set(trimmedName, commId);
+            } else {
+              continue;
+            }
           }
         }
 

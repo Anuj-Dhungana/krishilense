@@ -109,7 +109,9 @@ export const ampisCommodities = pgTable("ampis_commodities", {
   canonicalUnit: text("canonical_unit").notNull().default("kg"),
   imageUrl: text("image_url"),
   isPriorityTier1: boolean("is_priority_tier1").default(false).notNull(),
-});
+}, (t) => ({
+  unqNameNe: uniqueIndex("unq_ampis_commodity_name_ne").on(t.nameNe),
+}));
 
 export const canonicalCrops = pgTable("canonical_crops", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
