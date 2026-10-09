@@ -2,69 +2,183 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, BookOpen, Languages, Sprout, Wheat } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  BarChart3,
+  BookOpen,
+  Languages,
+  Menu,
+  Sprout,
+  Store,
+  Wheat,
+  X,
+} from "lucide-react";
 import { useLanguage } from "../lib/i18n";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { t, lang, toggleLang } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  // Prevent background scroll when mobile menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   const navLinks = [
-    { href: "/", label: t("nav_daily_market") },
-    { href: "/plan", label: t("nav_what_to_grow") },
-    { href: "/compare", label: t("nav_comparison") },
-    { href: "/methodology", label: t("nav_methodology") },
+    { href: "/", label: t("nav_daily_market"), icon: Store },
+    { href: "/plan", label: t("nav_what_to_grow"), icon: Sprout },
+    { href: "/compare", label: t("nav_comparison"), icon: BarChart3 },
+    { href: "/methodology", label: t("nav_methodology"), icon: BookOpen },
   ];
 
   return (
-    <header className="border-b bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <header className="sticky top-0 z-50 border-b border-emerald-100/80 bg-white/95 shadow-xs backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* Logo & Brand */}
-        <Link href="/" className="flex items-center space-x-2">
-          <Wheat className="h-7 w-7 text-emerald-700" aria-hidden="true" />
+        <Link href="/" className="flex items-center space-x-2.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 shadow-xs ring-1 ring-emerald-200/60">
+            <Wheat className="h-6 w-6 text-emerald-700" aria-hidden="true" />
+          </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-emerald-800">{t("brand_name")}</h1>
-            <p className="text-[11px] text-slate-500">{t("brand_tagline")}</p>
+            <h1 className="text-lg font-extrabold tracking-tight text-emerald-950 sm:text-xl">
+              {t("brand_name")}
+            </h1>
+            <p className="text-[10px] font-medium text-slate-500 sm:text-[11px]">
+              {t("brand_tagline")}
+            </p>
           </div>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Global Navigation Menu */}
-          <nav className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto pb-1 sm:pb-0 text-xs sm:text-sm font-medium">
+        {/* Desktop Navigation Menu (hidden on mobile, visible on md+) */}
+        <div className="hidden items-center gap-3 md:flex">
+          <nav className="flex items-center space-x-1 text-sm font-medium">
             {navLinks.map((link) => {
+              const Icon = link.icon;
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 transition-colors ${
                     isActive
-                      ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 shadow-xs"
-                      : "text-slate-600 hover:text-emerald-700 hover:bg-slate-100"
+                      ? "border border-emerald-200 bg-emerald-50 font-bold text-emerald-900 shadow-2xs"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-emerald-700"
                   }`}
                 >
-                  {link.href === "/plan" && <Sprout className="mr-1.5 inline-block h-4 w-4" aria-hidden="true" />}
-                  {link.href === "/compare" && <BarChart3 className="mr-1.5 inline-block h-4 w-4" aria-hidden="true" />}
-                  {link.href === "/methodology" && <BookOpen className="mr-1.5 inline-block h-4 w-4" aria-hidden="true" />}
+                  <Icon className="h-4 w-4" aria-hidden="true" />
                   {link.label}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Language Toggle Button */}
+          {/* Desktop Language Toggle */}
           <button
             id="lang-toggle-btn"
             onClick={toggleLang}
             title={lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 text-slate-700 font-bold text-xs sm:text-sm transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
             aria-label="Toggle language"
           >
-            <Languages className="h-4 w-4" aria-hidden="true" />
+            <Languages className="h-3.5 w-3.5" aria-hidden="true" />
             <span>{t("lang_switch_label")}</span>
           </button>
         </div>
+
+        {/* Mobile Action Controls (Lang Toggle + Hamburger Menu) */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            onClick={toggleLang}
+            title={lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+            aria-label="Toggle language"
+          >
+            <Languages className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />
+            <span>{lang === "ne" ? "EN" : "नेपाली"}</span>
+          </button>
+
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 transition-colors hover:bg-emerald-50 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Drawer Dropdown & Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-x-0 top-[65px] bottom-0 z-40 bg-slate-900/40 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+        >
+          <div
+            className="border-b border-emerald-100 bg-white px-4 pt-3 pb-6 shadow-xl animate-in slide-in-from-top-4 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <nav className="flex flex-col space-y-1">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-semibold transition-colors ${
+                      isActive
+                        ? "border border-emerald-200 bg-emerald-50 font-bold text-emerald-900"
+                        : "text-slate-700 hover:bg-slate-50 hover:text-emerald-700"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                          isActive ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </div>
+                      <span>{link.label}</span>
+                    </div>
+                    {isActive && (
+                      <span className="h-2 w-2 rounded-full bg-emerald-600" />
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="mt-4 flex items-center justify-between border-t border-slate-100 px-1 pt-4 text-xs text-slate-500">
+              <span>{t("brand_name")}</span>
+              <button
+                onClick={() => {
+                  toggleLang();
+                  setIsOpen(false);
+                }}
+                className="font-bold text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
+              >
+                {lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
