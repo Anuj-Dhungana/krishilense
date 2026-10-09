@@ -22,6 +22,7 @@ interface RecommendedCrop {
   varietyNameNe: string;
   commodityCode: string;
   canonicalUnit: string;
+  imageUrl?: string | null;
   maturityDaysRange: [number, number];
   expectedHarvestMonth: number;
   historicalMedianPrice: number;
@@ -36,6 +37,8 @@ interface RecommendedCrop {
 interface InsufficientDataCrop {
   cropNameNe: string;
   varietyNameNe: string;
+  commodityCode?: string;
+  imageUrl?: string | null;
   reason: string;
 }
 
@@ -113,12 +116,12 @@ export default function PlanPage() {
         className="overflow-hidden rounded-2xl border border-[#DCEBE4] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
       >
         <div className="flex flex-col sm:flex-row">
-          <div className="relative h-52 shrink-0 bg-emerald-50 sm:h-auto sm:w-48">
+          <div className="relative h-56 shrink-0 bg-emerald-50 sm:h-auto sm:w-56 overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={getCropIconUrl(item.cropNameNe, item.varietyNameNe, item.commodityCode)}
+              src={item.imageUrl || getCropIconUrl(item.cropNameNe, item.varietyNameNe, item.commodityCode)}
               alt={cropName}
-              className="h-full min-h-48 w-full object-cover"
+              className="h-full min-h-48 w-full object-cover transition-transform duration-300 hover:scale-105"
               loading="lazy"
             />
             <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold shadow-sm ${badgeColor}`}>
@@ -318,7 +321,16 @@ export default function PlanPage() {
           </div>
 
           <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
-            <Star className="h-5 w-5 shrink-0 fill-emerald-600 text-emerald-600" aria-hidden="true" />
+            {topRecommendation?.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={topRecommendation.imageUrl}
+                alt={topRecommendationName || ""}
+                className="h-10 w-10 shrink-0 rounded-lg object-cover border border-emerald-200"
+              />
+            ) : (
+              <Star className="h-5 w-5 shrink-0 fill-emerald-600 text-emerald-600" aria-hidden="true" />
+            )}
             <div>
               <strong className="mr-2">{lang === "en" ? "Best Opportunity" : "उत्कृष्ट अवसर"}</strong>
               {topRecommendationName
@@ -382,11 +394,21 @@ export default function PlanPage() {
               <p className="text-xs text-slate-600">
                 {lang === "en" ? "Insufficient market data is available to estimate these opportunities reliably." : "यी बालीहरूको अवसर विश्वसनीय रूपमा अनुमान गर्न पर्याप्त बजार तथ्याङ्क उपलब्ध छैन।"}
               </p>
-              <div className="divide-y divide-emerald-100 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
                 {results.cohort_d.map((d, idx) => (
-                  <div key={idx} className="flex items-center justify-between gap-3 py-2 text-slate-700">
-                    <span>• {d.cropNameNe} ({d.varietyNameNe})</span>
-                    <span className="text-slate-500 italic">{d.reason}</span>
+                  <div key={idx} className="flex items-center gap-3 rounded-xl border border-[#DCEBE4] bg-white p-3 shadow-xs">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={d.imageUrl || getCropIconUrl(d.cropNameNe, d.varietyNameNe, d.commodityCode || "")}
+                      alt={d.cropNameNe}
+                      className="h-12 w-12 shrink-0 rounded-lg object-cover bg-emerald-50"
+                      loading="lazy"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-bold text-slate-900">{d.cropNameNe}</p>
+                      <p className="truncate text-[11px] text-slate-500">{d.varietyNameNe}</p>
+                      <p className="truncate text-[10px] text-slate-400 italic">{d.reason}</p>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -11,6 +11,7 @@ export interface RecommendedCrop {
   varietyNameNe: string;
   commodityCode: string;
   canonicalUnit: string;
+  imageUrl?: string | null;
   maturityDaysRange: [number, number];
   expectedHarvestMonth: number;
   historicalMedianPrice: number;
@@ -27,6 +28,7 @@ export interface InsufficientDataCrop {
   cropNameNe: string;
   varietyNameNe: string;
   commodityCode: string;
+  imageUrl?: string | null;
   reason: string;
 }
 
@@ -76,6 +78,7 @@ export async function POST(request: NextRequest) {
         commodityCode: schema.ampisCommodities.code,
         commodityId: schema.ampisCommodities.id,
         canonicalUnit: schema.ampisCommodities.canonicalUnit,
+        imageUrl: schema.ampisCommodities.imageUrl,
       })
       .from(schema.cropCalendars)
       .innerJoin(schema.cropVarietySystems, eq(schema.cropCalendars.varietySystemId, schema.cropVarietySystems.id))
@@ -180,6 +183,7 @@ export async function POST(request: NextRequest) {
           cropNameNe: crop.cropNameNe,
           varietyNameNe: crop.varietyNameNe,
           commodityCode: crop.commodityCode,
+          imageUrl: crop.imageUrl || null,
           reason: "कृषि रूपमा उपयुक्त तर यस बजारमा ऐतिहासिक मूल्य तथ्याङ्क उपलब्ध छैन।",
         });
         continue;
@@ -195,6 +199,7 @@ export async function POST(request: NextRequest) {
         varietyNameNe: crop.varietyNameNe,
         commodityCode: crop.commodityCode,
         canonicalUnit: crop.canonicalUnit,
+        imageUrl: crop.imageUrl || null,
         maturityDaysRange: [crop.maturityMin, crop.maturityMax],
         expectedHarvestMonth: harvestMonth,
         historicalMedianPrice: parseFloat(b.baselineMonthlyMedian),
