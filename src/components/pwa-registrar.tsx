@@ -75,13 +75,15 @@ export default function PwaRegistrar() {
         <img
           src="/icons/icon-192x192.png"
           alt="KrishiLens"
+          width={48}
+          height={48}
           className="h-12 w-12 shrink-0 rounded-xl shadow-xs"
         />
         <div className="min-w-0 flex-1">
-          <h4 className="truncate text-xs font-extrabold text-emerald-950 sm:text-sm">
+          <p className="truncate text-xs font-extrabold text-emerald-950 sm:text-sm">
             {lang === "ne" ? "KrishiLens मोबाइल एप" : "KrishiLens Mobile App"}
-          </h4>
-          <p className="truncate text-[11px] text-slate-500">
+          </p>
+          <p className="truncate text-[11px] text-slate-600">
             {lang === "ne"
               ? "होमस्क्रिनमा इन्स्टल गरी छिटो र अफलाइन हेर्नुहोस्"
               : "Install to home screen for fast & offline access"}

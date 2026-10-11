@@ -4,7 +4,7 @@ import { useState, useEffect, ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Languages } from "lucide-react";
-import { getCropIconUrl } from "../../lib/crop-icons";
+import { getCropIconUrl, getCommodityThumbnail } from "../../lib/crop-icons";
 import { CATEGORY_NE_TO_KEY, useLanguage } from "../../lib/i18n";
 
 interface AdminCommodity {
@@ -394,7 +394,7 @@ export default function AdminPage() {
                 ) : filtered.length > 0 ? (
                   filtered.map((item) => {
                     const currentUrl = editingUrls[item.code] || "";
-                    const previewSrc = currentUrl || getCropIconUrl(item.nameNe, item.categoryNe, item.code);
+                    const previewSrc = getCommodityThumbnail(currentUrl, item.nameNe, item.categoryNe, item.code, 96);
                     const isCustom = !!currentUrl;
 
                     return (
@@ -406,6 +406,8 @@ export default function AdminPage() {
                             <img
                               src={previewSrc}
                               alt={item.nameNe}
+                              width={48}
+                              height={48}
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = getCropIconUrl(item.nameNe, item.categoryNe, item.code);

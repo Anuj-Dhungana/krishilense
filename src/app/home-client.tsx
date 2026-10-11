@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { CalendarDays, Filter, Leaf, MapPin, Search, Store, Tag, TrendingUp } from "lucide-react";
 import { useRef, useState } from "react";
 import { useLanguage, CATEGORY_NE_TO_KEY, type TranslationKey } from "../lib/i18n";
-import { getCropIconUrl } from "../lib/crop-icons";
+import { getCropIconUrl, getCommodityThumbnail } from "../lib/crop-icons";
 
 type PriceRow = {
   id: number;
@@ -117,6 +118,7 @@ export default function HomeClient({
   const latestUpdateBs = dateInfo?.bs_date ? formatDate(dateInfo.bs_date) : "—";
   const updatedTime = dateInfo
     ? new Intl.DateTimeFormat(lang === "ne" ? "ne-NP" : "en-US", {
+        timeZone: "Asia/Kathmandu",
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
@@ -148,13 +150,16 @@ export default function HomeClient({
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
       <section className="relative min-h-[160px] overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50 px-6 py-6 shadow-sm sm:px-8">
-        <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-right bg-no-repeat"
-          style={{ backgroundImage: "url('/banner.jpg')" }}
-          aria-hidden="true"
+        <Image
+          src="/banner.webp"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 1200px"
+          className="pointer-events-none object-cover object-right -z-0"
         />
         <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-emerald-50 via-emerald-50/90 to-emerald-50/10 sm:via-emerald-50/80 sm:to-transparent"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-emerald-50 via-emerald-50/90 to-emerald-50/10 sm:via-emerald-50/80 sm:to-transparent z-[1]"
           aria-hidden="true"
         />
         <div className="relative z-10 max-w-2xl">
@@ -166,13 +171,13 @@ export default function HomeClient({
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-emerald-950 sm:text-3xl">
             {marketDisplayName}
           </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-600">
             <span className="inline-flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />
               {lang === "ne" ? (currentMarket?.district.name_ne || "नेपाल") : (currentMarket?.district.name_en || "Nepal")}
             </span>
             <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />{latestUpdate}</span>
-            <span className="text-slate-400">
+            <span className="text-slate-600 font-medium" suppressHydrationWarning>
               {updatedTime ? (lang === "ne" ? `(${updatedTime} मा अपडेट)` : `(Updated ${updatedTime})`) : ""}
             </span>
           </div>
@@ -281,8 +286,10 @@ export default function HomeClient({
                       <td className="py-3 px-4 text-center">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={item.image_url || getCropIconUrl(item.commodity_name_ne, item.category_ne, item.commodity_code)}
+                          src={getCommodityThumbnail(item.image_url, item.commodity_name_ne, item.category_ne, item.commodity_code, 96)}
                           alt={item.commodity_name_ne}
+                          width={48}
+                          height={48}
                           className="mx-auto h-12 w-12 rounded-lg object-cover"
                           loading="lazy"
                         />
@@ -336,9 +343,9 @@ function SummaryCard({ icon, label, value, detail }: { icon: React.ReactNode; la
     <div className="flex min-h-[112px] items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">{icon}</span>
       <div className="min-w-0">
-        <p className="truncate text-[11px] text-slate-500">{label}</p>
-        <p className="mt-1 truncate text-xl font-extrabold text-emerald-950">{value}</p>
-        <p className="mt-1 truncate text-[10px] text-slate-400">{detail}</p>
+        <p className="truncate text-[11px] font-medium text-slate-600">{label}</p>
+        <p className="mt-1 truncate text-xl font-extrabold text-emerald-950" suppressHydrationWarning>{value}</p>
+        <p className="mt-1 truncate text-[10px] text-slate-600 font-medium" suppressHydrationWarning>{detail}</p>
       </div>
     </div>
   );

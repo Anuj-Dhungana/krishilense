@@ -53,9 +53,9 @@ export default function Navbar() {
             <Wheat className="h-6 w-6 text-emerald-700" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-lg font-extrabold tracking-tight text-emerald-950 sm:text-xl">
+            <span className="block text-lg font-extrabold tracking-tight text-emerald-950 sm:text-xl">
               {t("brand_name")}
-            </h1>
+            </span>
             <p className="text-[10px] font-medium text-slate-500 sm:text-[11px]">
               {t("brand_tagline")}
             </p>

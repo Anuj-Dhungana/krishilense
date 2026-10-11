@@ -14,7 +14,7 @@ import {
   Wheat,
 } from "lucide-react";
 import { useLanguage } from "../../lib/i18n";
-import { getCropIconUrl } from "../../lib/crop-icons";
+import { getCropIconUrl, getCommodityThumbnail } from "../../lib/crop-icons";
 
 interface RecommendedCrop {
   cropNameEn: string;
@@ -119,8 +119,10 @@ export default function PlanPage() {
           <div className="relative h-56 shrink-0 bg-emerald-50 sm:h-auto sm:w-56 overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={item.imageUrl || getCropIconUrl(item.cropNameNe, item.varietyNameNe, item.commodityCode)}
+              src={getCommodityThumbnail(item.imageUrl, item.cropNameNe, item.varietyNameNe, item.commodityCode, 224)}
               alt={cropName}
+              width={224}
+              height={224}
               className="h-full min-h-48 w-full object-cover transition-transform duration-300 hover:scale-105"
               loading="lazy"
             />
@@ -131,9 +133,9 @@ export default function PlanPage() {
           <div className="min-w-0 flex-1 space-y-4 p-5">
             <div className="flex items-start justify-between gap-3 border-b border-[#DCEBE4] pb-3">
               <div>
-                <h4 className="text-xl font-bold text-[#16352F]">
+                <h3 className="text-xl font-bold text-[#16352F]">
                   {cropName} <span className="text-sm font-normal text-slate-500">({item.varietyNameNe})</span>
-                </h4>
+                </h3>
                 <span className="text-xs text-slate-500">
                   {t("crop_duration")} {formatNum(item.maturityDaysRange[0])}–{formatNum(item.maturityDaysRange[1])} {t("crop_days")}
                 </span>
@@ -190,7 +192,7 @@ export default function PlanPage() {
       <section className="relative overflow-visible">
         <div
           className="relative min-h-[330px] bg-cover bg-center"
-          style={{ backgroundImage: "url('/banner%20of%20what%20to%20grow.png')" }}
+          style={{ backgroundImage: "url('/banner-what-to-grow.webp')" }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/10" />
           <div className="relative mx-auto max-w-7xl px-4 pb-28 pt-12 sm:px-6 lg:px-8">
@@ -324,8 +326,10 @@ export default function PlanPage() {
             {topRecommendation?.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={topRecommendation.imageUrl}
+                src={getCommodityThumbnail(topRecommendation.imageUrl, topRecommendation.cropNameNe, topRecommendation.varietyNameNe, topRecommendation.commodityCode, 96)}
                 alt={topRecommendationName || ""}
+                width={40}
+                height={40}
                 className="h-10 w-10 shrink-0 rounded-lg object-cover border border-emerald-200"
               />
             ) : (
@@ -387,10 +391,10 @@ export default function PlanPage() {
           {/* Cohort D */}
           {results.cohort_d?.length > 0 && (
             <div className="space-y-3 rounded-2xl border border-[#DCEBE4] bg-emerald-50/50 p-5">
-              <h4 className="flex items-center gap-2 text-sm font-bold text-emerald-900">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-emerald-900">
                 <Sprout className="h-4 w-4" aria-hidden="true" />
                 {t("cohort_d_title")}
-              </h4>
+              </h3>
               <p className="text-xs text-slate-600">
                 {lang === "en" ? "Insufficient market data is available to estimate these opportunities reliably." : "यी बालीहरूको अवसर विश्वसनीय रूपमा अनुमान गर्न पर्याप्त बजार तथ्याङ्क उपलब्ध छैन।"}
               </p>
@@ -399,15 +403,17 @@ export default function PlanPage() {
                   <div key={idx} className="flex items-center gap-3 rounded-xl border border-[#DCEBE4] bg-white p-3 shadow-xs">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={d.imageUrl || getCropIconUrl(d.cropNameNe, d.varietyNameNe, d.commodityCode || "")}
+                      src={getCommodityThumbnail(d.imageUrl, d.cropNameNe, d.varietyNameNe, d.commodityCode || "", 96)}
                       alt={d.cropNameNe}
+                      width={48}
+                      height={48}
                       className="h-12 w-12 shrink-0 rounded-lg object-cover bg-emerald-50"
                       loading="lazy"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-bold text-slate-900">{d.cropNameNe}</p>
                       <p className="truncate text-[11px] text-slate-500">{d.varietyNameNe}</p>
-                      <p className="truncate text-[10px] text-slate-400 italic">{d.reason}</p>
+                      <p className="truncate text-[10px] text-slate-600 italic">{d.reason}</p>
                     </div>
                   </div>
                 ))}

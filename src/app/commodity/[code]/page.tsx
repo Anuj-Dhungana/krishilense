@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import CommodityPageClient from "./commodity-page-client";
 import { db } from "../../../db";
 import * as schema from "../../../db/schema";
@@ -11,6 +12,24 @@ const BS_MONTH_NAMES_NE = [
   "कार्तिक", "मंसिर", "पुस", "माघ", "फागुन", "चैत"
 ];
 
+// Cache the 10-year multi-year seasonal baselines for 1 hour.
+// This data only changes when the analytics pipeline runs,
+// so caching avoids redundant Neon queries on every page view.
+const getCachedBaselines = unstable_cache(
+  async (marketId: number, commodityId: number) => {
+    return await db
+      .select()
+      .from(schema.seasonalBaselines)
+      .where(and(
+        eq(schema.seasonalBaselines.marketId, marketId),
+        eq(schema.seasonalBaselines.ampisCommodityId, commodityId)
+      ))
+      .orderBy(schema.seasonalBaselines.bsMonth);
+  },
+  ["commodity-seasonal-baselines"],
+  { revalidate: 3600, tags: ["baselines"] }
+);
+
 export default async function CommodityPage({
   params,
   searchParams,
@@ -22,47 +41,59 @@ export default async function CommodityPage({
   const { market: urlMarket } = await searchParams;
   const marketSlug = urlMarket || "kalimati";
 
-  // 1. Get Commodity
-  const commodity = await db
-    .select()
-    .from(schema.ampisCommodities)
-    .where(eq(schema.ampisCommodities.code, code))
-    .limit(1);
+  // Batch 1: Look up commodity and market concurrently
+  const [commodityRes, marketRes] = await Promise.all([
+    db
+      .select()
+      .from(schema.ampisCommodities)
+      .where(eq(schema.ampisCommodities.code, code))
+      .limit(1),
+    db
+      .select()
+      .from(schema.markets)
+      .where(eq(schema.markets.publicSlug, marketSlug))
+      .limit(1),
+  ]);
 
-  if (!commodity.length) {
+  if (!commodityRes.length) {
     return <CommodityNotFoundServer />;
   }
 
-  // 2. Get Market
-  const market = await db
-    .select()
-    .from(schema.markets)
-    .where(eq(schema.markets.publicSlug, marketSlug))
-    .limit(1);
+  const currentMarket = marketRes[0] || { id: 1, nameNe: "कालिमाटी थोक बजार", nameEn: "Kalimati Wholesale Market" };
+  const currentComm = commodityRes[0];
 
-  const currentMarket = market[0] || { id: 1, nameNe: "कालिमाटी थोक बजार", nameEn: "Kalimati Wholesale Market" };
-  const currentComm = commodity[0];
+  // Batch 2: Concurrently fetch latestPrice, cached baselines, and 30-day rawDailyPrices
+  const [latestPrice, baselines, rawDailyPrices] = await Promise.all([
+    db
+      .select()
+      .from(schema.canonicalDailyMarketPrices)
+      .where(and(
+        eq(schema.canonicalDailyMarketPrices.marketId, currentMarket.id),
+        eq(schema.canonicalDailyMarketPrices.ampisCommodityId, currentComm.id)
+      ))
+      .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
+      .limit(1),
 
-  // 3. Get Today's Latest Price
-  const latestPrice = await db
-    .select()
-    .from(schema.canonicalDailyMarketPrices)
-    .where(and(
-      eq(schema.canonicalDailyMarketPrices.marketId, currentMarket.id),
-      eq(schema.canonicalDailyMarketPrices.ampisCommodityId, currentComm.id)
-    ))
-    .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
-    .limit(1);
+    getCachedBaselines(currentMarket.id, currentComm.id),
 
-  // 4. Get 12-Month Seasonal Baselines
-  const baselines = await db
-    .select()
-    .from(schema.seasonalBaselines)
-    .where(and(
-      eq(schema.seasonalBaselines.marketId, currentMarket.id),
-      eq(schema.seasonalBaselines.ampisCommodityId, currentComm.id)
-    ))
-    .orderBy(schema.seasonalBaselines.bsMonth);
+    db
+      .select({
+        dateAd: schema.canonicalDailyMarketPrices.dateAd,
+        bsMonth: schema.canonicalDailyMarketPrices.bsMonth,
+        bsDay: schema.canonicalDailyMarketPrices.bsDay,
+        minPrice: schema.canonicalDailyMarketPrices.minPrice,
+        maxPrice: schema.canonicalDailyMarketPrices.maxPrice,
+        repPrice: schema.canonicalDailyMarketPrices.representativePrice,
+      })
+      .from(schema.canonicalDailyMarketPrices)
+      .where(and(
+        eq(schema.canonicalDailyMarketPrices.marketId, currentMarket.id),
+        eq(schema.canonicalDailyMarketPrices.ampisCommodityId, currentComm.id),
+        eq(schema.canonicalDailyMarketPrices.isCurrent, true)
+      ))
+      .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
+      .limit(30),
+  ]);
 
   const hasSeasonalBaselines = baselines.length >= 10;
 
@@ -73,25 +104,6 @@ export default async function CommodityPage({
     spi: b.spi ? parseFloat(b.spi) : null,
     delta_spi_pct: b.deltaSpiPct ? parseFloat(b.deltaSpiPct) : null,
   }));
-
-  // 5. Query Recent Daily Prices (Up to 30 days)
-  const rawDailyPrices = await db
-    .select({
-      dateAd: schema.canonicalDailyMarketPrices.dateAd,
-      bsMonth: schema.canonicalDailyMarketPrices.bsMonth,
-      bsDay: schema.canonicalDailyMarketPrices.bsDay,
-      minPrice: schema.canonicalDailyMarketPrices.minPrice,
-      maxPrice: schema.canonicalDailyMarketPrices.maxPrice,
-      repPrice: schema.canonicalDailyMarketPrices.representativePrice,
-    })
-    .from(schema.canonicalDailyMarketPrices)
-    .where(and(
-      eq(schema.canonicalDailyMarketPrices.marketId, currentMarket.id),
-      eq(schema.canonicalDailyMarketPrices.ampisCommodityId, currentComm.id),
-      eq(schema.canonicalDailyMarketPrices.isCurrent, true)
-    ))
-    .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
-    .limit(30);
 
   const dailyTrendData = rawDailyPrices.reverse().map((d) => ({
     date_label: `${d.bsMonth}/${d.bsDay}`,

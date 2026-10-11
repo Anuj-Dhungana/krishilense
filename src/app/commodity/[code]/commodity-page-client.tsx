@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { BarChart3, MapPin, Sprout } from "lucide-react";
 import { useLanguage, CATEGORY_NE_TO_KEY } from "../../../lib/i18n";
-import { getCropIconUrl } from "../../../lib/crop-icons";
+import { getCropIconUrl, getCommodityThumbnail } from "../../../lib/crop-icons";
 import IntelligenceTabs from "./intelligence-tabs";
 
 interface Props {
@@ -78,8 +78,10 @@ export default function CommodityPageClient({
           <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={commodity.imageUrl || getCropIconUrl(commodity.nameNe, commodity.categoryNe, commodity.code)}
+              src={getCommodityThumbnail(commodity.imageUrl, commodity.nameNe, commodity.categoryNe, commodity.code, 128)}
               alt={commodityName}
+              width={64}
+              height={64}
               className="h-full w-full object-cover"
             />
           </div>
@@ -107,29 +109,29 @@ export default function CommodityPageClient({
       {/* Card 1: Today's Price Snapshot */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">{t("commodity_avg_today")}</span>
+          <span className="text-xs text-slate-600 font-medium">{t("commodity_avg_today")}</span>
           <div className="text-2xl sm:text-3xl font-bold text-emerald-700 mt-1 font-mono">
             {t("currency")} {today ? formatPrice(today.representativePrice) : "—"}
           </div>
-          <span className="text-xs text-slate-400 mt-1 block">
+          <span className="text-xs text-slate-600 mt-1 block">
             {t("commodity_unit_per")} {commodity.canonicalUnit}
           </span>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">{t("commodity_min_today")}</span>
+          <span className="text-xs text-slate-600 font-medium">{t("commodity_min_today")}</span>
           <div className="text-2xl sm:text-3xl font-bold text-slate-700 mt-1 font-mono">
             {t("currency")} {today ? formatPrice(today.minPrice) : "—"}
           </div>
-          <span className="text-xs text-slate-400 mt-1 block">{t("commodity_min_desc")}</span>
+          <span className="text-xs text-slate-600 mt-1 block">{t("commodity_min_desc")}</span>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">{t("commodity_max_today")}</span>
+          <span className="text-xs text-slate-600 font-medium">{t("commodity_max_today")}</span>
           <div className="text-2xl sm:text-3xl font-bold text-slate-700 mt-1 font-mono">
             {t("currency")} {today ? formatPrice(today.maxPrice) : "—"}
           </div>
-          <span className="text-xs text-slate-400 mt-1 block">{t("commodity_max_desc")}</span>
+          <span className="text-xs text-slate-600 mt-1 block">{t("commodity_max_desc")}</span>
         </div>
       </div>
 
@@ -148,9 +150,9 @@ export default function CommodityPageClient({
       {hasSeasonalBaselines && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <h2 className="font-bold text-slate-800 text-sm flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-amber-600" aria-hidden="true" /> {t("risk_daily_volatility")}
-            </h3>
+            </h2>
             <div className="text-xl font-bold text-amber-600 font-mono">
               {riskProfile?.daily_cv ? `${formatPrice(riskProfile.daily_cv)}%` : "—"}
             </div>
@@ -158,9 +160,9 @@ export default function CommodityPageClient({
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <h2 className="font-bold text-slate-800 text-sm flex items-center gap-2">
               <Sprout className="h-4 w-4 text-emerald-700" aria-hidden="true" /> {t("risk_annual_variability")}
-            </h3>
+            </h2>
             <div className="text-xl font-bold text-emerald-700 font-mono">
               {riskProfile?.annual_cv ? `${formatPrice(riskProfile.annual_cv)}%` : "—"}
             </div>
