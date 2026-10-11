@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import CommodityPageClient from "./commodity-page-client";
 import { db } from "../../../db";
 import * as schema from "../../../db/schema";
@@ -10,6 +11,24 @@ const BS_MONTH_NAMES_NE = [
   "बैशाख", "जेठ", "असार", "साउन", "भदौ", "असोज",
   "कार्तिक", "मंसिर", "पुस", "माघ", "फागुन", "चैत"
 ];
+
+// Cache the 10-year multi-year seasonal baselines for 1 hour.
+// This data only changes when the analytics pipeline (`recompute-analytics.ts`)
+// runs, so caching avoids redundant Neon queries on every page view.
+const getCachedBaselines = unstable_cache(
+  async (marketId: number, commodityId: number) => {
+    return await db
+      .select()
+      .from(schema.seasonalBaselines)
+      .where(and(
+        eq(schema.seasonalBaselines.marketId, marketId),
+        eq(schema.seasonalBaselines.ampisCommodityId, commodityId)
+      ))
+      .orderBy(schema.seasonalBaselines.bsMonth);
+  },
+  ["commodity-seasonal-baselines"],
+  { revalidate: 3600, tags: ["baselines"] }
+);
 
 export default async function CommodityPage({
   params,
@@ -43,7 +62,7 @@ export default async function CommodityPage({
   const currentMarket = market[0] || { id: 1, nameNe: "कालिमाटी थोक बजार", nameEn: "Kalimati Wholesale Market" };
   const currentComm = commodity[0];
 
-  // 3. Get Today's Latest Price
+  // 3. Get Today's Latest Price (always fresh — no caching)
   const latestPrice = await db
     .select()
     .from(schema.canonicalDailyMarketPrices)
@@ -54,15 +73,8 @@ export default async function CommodityPage({
     .orderBy(desc(schema.canonicalDailyMarketPrices.dateAd))
     .limit(1);
 
-  // 4. Get 12-Month Seasonal Baselines
-  const baselines = await db
-    .select()
-    .from(schema.seasonalBaselines)
-    .where(and(
-      eq(schema.seasonalBaselines.marketId, currentMarket.id),
-      eq(schema.seasonalBaselines.ampisCommodityId, currentComm.id)
-    ))
-    .orderBy(schema.seasonalBaselines.bsMonth);
+  // 4. Get 12-Month Seasonal Baselines (cached for 1 hour)
+  const baselines = await getCachedBaselines(currentMarket.id, currentComm.id);
 
   const hasSeasonalBaselines = baselines.length >= 10;
 
