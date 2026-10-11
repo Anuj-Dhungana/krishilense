@@ -1,4 +1,5 @@
 import HomeClient from "./home-client";
+import { unstable_cache } from "next/cache";
 import { db } from "../db";
 import * as schema from "../db/schema";
 import { eq, and, desc } from "drizzle-orm";
@@ -23,6 +24,30 @@ const CATEGORIES_NE = [
 // The "all" sentinel stored in URLs
 const ALL_SENTINEL = "all";
 
+// Cache the static 3-table markets query for 24 hours (revalidate: 86400)
+// Wholesale markets change rarely, saving redundant Neon joins on every homepage view
+const getCachedMarketsList = unstable_cache(
+  async () => {
+    return await db
+      .select({
+        id: schema.markets.id,
+        public_slug: schema.markets.publicSlug,
+        name_ne: schema.markets.nameNe,
+        name_en: schema.markets.nameEn,
+        district: {
+          name_ne: schema.administrativeDistricts.nameNe,
+          name_en: schema.administrativeDistricts.nameEn,
+        },
+      })
+      .from(schema.markets)
+      .innerJoin(schema.municipalities, eq(schema.markets.municipalityId, schema.municipalities.id))
+      .innerJoin(schema.administrativeDistricts, eq(schema.municipalities.districtId, schema.administrativeDistricts.id))
+      .orderBy(schema.markets.id);
+  },
+  ["all-markets-list"],
+  { revalidate: 86400, tags: ["markets"] }
+);
+
 export default async function Home({
   searchParams,
 }: {
@@ -33,22 +58,8 @@ export default async function Home({
   // Category param in URL is either "all" or a Nepali category string
   const activeCategory = urlCategory || ALL_SENTINEL;
 
-  // 1. Get All Markets
-  const marketsList = await db
-    .select({
-      id: schema.markets.id,
-      public_slug: schema.markets.publicSlug,
-      name_ne: schema.markets.nameNe,
-      name_en: schema.markets.nameEn,
-      district: {
-        name_ne: schema.administrativeDistricts.nameNe,
-        name_en: schema.administrativeDistricts.nameEn,
-      },
-    })
-    .from(schema.markets)
-    .innerJoin(schema.municipalities, eq(schema.markets.municipalityId, schema.municipalities.id))
-    .innerJoin(schema.administrativeDistricts, eq(schema.municipalities.districtId, schema.administrativeDistricts.id))
-    .orderBy(schema.markets.id);
+  // 1. Get All Markets (cached)
+  const marketsList = await getCachedMarketsList();
 
   // 2. Identify active market
   const currentMarket = marketsList.find((m) => m.public_slug === activeMarketSlug) || marketsList[0];

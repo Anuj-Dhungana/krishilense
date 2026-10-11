@@ -66,20 +66,27 @@ export async function GET(request: NextRequest) {
           .orderBy(ampisCommodities.code)
       : [];
 
-    return NextResponse.json({
-      success: true,
-      market: {
-        slug: market[0].publicSlug,
-        name_en: market[0].nameEn,
-        name_ne: market[0].nameNe,
+    return NextResponse.json(
+      {
+        success: true,
+        market: {
+          slug: market[0].publicSlug,
+          name_en: market[0].nameEn,
+          name_ne: market[0].nameNe,
+        },
+        date: prices[0] ? {
+          date_ad: prices[0].date_ad,
+          bs_date: `${prices[0].bs_year}-${prices[0].bs_month}-${prices[0].bs_day}`,
+        } : null,
+        total_commodities: prices.length,
+        data: prices,
       },
-      date: prices[0] ? {
-        date_ad: prices[0].date_ad,
-        bs_date: `${prices[0].bs_year}-${prices[0].bs_month}-${prices[0].bs_day}`,
-      } : null,
-      total_commodities: prices.length,
-      data: prices,
-    });
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
+        },
+      }
+    );
   } catch (error) {
     console.error("❌ Failed to fetch today's prices:", error);
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });

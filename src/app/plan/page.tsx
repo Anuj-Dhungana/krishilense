@@ -121,6 +121,8 @@ export default function PlanPage() {
             <img
               src={item.imageUrl || getCropIconUrl(item.cropNameNe, item.varietyNameNe, item.commodityCode)}
               alt={cropName}
+              width={224}
+              height={224}
               className="h-full min-h-48 w-full object-cover transition-transform duration-300 hover:scale-105"
               loading="lazy"
             />
@@ -326,6 +328,8 @@ export default function PlanPage() {
               <img
                 src={topRecommendation.imageUrl}
                 alt={topRecommendationName || ""}
+                width={40}
+                height={40}
                 className="h-10 w-10 shrink-0 rounded-lg object-cover border border-emerald-200"
               />
             ) : (
@@ -401,6 +405,8 @@ export default function PlanPage() {
                     <img
                       src={d.imageUrl || getCropIconUrl(d.cropNameNe, d.varietyNameNe, d.commodityCode || "")}
                       alt={d.cropNameNe}
+                      width={48}
+                      height={48}
                       className="h-12 w-12 shrink-0 rounded-lg object-cover bg-emerald-50"
                       loading="lazy"
                     />
