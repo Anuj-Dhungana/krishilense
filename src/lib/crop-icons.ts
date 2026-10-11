@@ -63,6 +63,17 @@ export function optimizeThumbnailUrl(url: string | null | undefined, size = 96):
         return trimmed.replace("/upload/", `/upload/${transform}/`);
       }
     }
+
+    // 3. Google-hosted images (lh3.googleusercontent.com, *.ggpht.com):
+    //    Append =w{size}-h{size}-c to constrain to exact pixel dimensions
+    if (
+      trimmed.includes("googleusercontent.com") ||
+      trimmed.includes("ggpht.com")
+    ) {
+      // Strip any existing size suffix (e.g. =s0, =w1024, =s800-c)
+      const cleaned = trimmed.replace(/=[swh]\d+[^&]*/g, "");
+      return `${cleaned}=w${size}-h${size}-c`;
+    }
   } catch {
     return trimmed;
   }
