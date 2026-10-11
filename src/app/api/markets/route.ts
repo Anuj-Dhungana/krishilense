@@ -41,11 +41,18 @@ export async function GET() {
       .innerJoin(provinces, eq(administrativeDistricts.provinceId, provinces.id))
       .orderBy(markets.id);
 
-    return NextResponse.json({
-      success: true,
-      count: data.length,
-      data,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        count: data.length,
+        data,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=3600",
+        },
+      }
+    );
   } catch (error) {
     console.error("❌ Failed to fetch markets from Neon:", error);
     return NextResponse.json(

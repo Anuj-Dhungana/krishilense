@@ -1,10 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useLanguage } from "../../../lib/i18n";
-import SeasonalChart from "./seasonal-chart";
 import CropCalendarCard from "./crop-calendar-card";
-import DailyTrendChart from "./daily-trend-chart";
+
+const SeasonalChart = dynamic(() => import("./seasonal-chart"), {
+  loading: () => (
+    <div className="h-72 w-full rounded-2xl bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 text-xs">
+      चार्ट लोड हुँदैछ...
+    </div>
+  ),
+  ssr: false,
+});
+
+const DailyTrendChart = dynamic(() => import("./daily-trend-chart"), {
+  loading: () => (
+    <div className="h-72 w-full rounded-2xl bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 text-xs">
+      दैनिक ट्रेन्ड लोड हुँदैछ...
+    </div>
+  ),
+  ssr: false,
+});
 
 interface MonthData {
   bs_month: number;

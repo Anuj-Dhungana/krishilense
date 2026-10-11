@@ -18,11 +18,18 @@ export async function GET() {
       .from(ampisCommodities)
       .orderBy(asc(ampisCommodities.categoryNe), asc(ampisCommodities.nameNe));
 
-    return NextResponse.json({
-      success: true,
-      count: list.length,
-      data: list,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        count: list.length,
+        data: list,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=3600",
+        },
+      }
+    );
   } catch (error: unknown) {
     console.error("❌ Failed to fetch commodities:", error);
     return NextResponse.json(

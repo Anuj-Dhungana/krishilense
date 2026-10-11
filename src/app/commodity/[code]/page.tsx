@@ -13,8 +13,8 @@ const BS_MONTH_NAMES_NE = [
 ];
 
 // Cache the 10-year multi-year seasonal baselines for 1 hour.
-// This data only changes when the analytics pipeline runs,
-// so caching avoids redundant Neon queries on every page view.
+// This data only changes when the analytics pipeline (`recompute-analytics.ts`)
+// runs, so caching avoids redundant Neon queries on every page view.
 const getCachedBaselines = unstable_cache(
   async (marketId: number, commodityId: number) => {
     return await db
