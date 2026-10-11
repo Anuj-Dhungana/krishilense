@@ -406,6 +406,8 @@ export default function AdminPage() {
                             <img
                               src={previewSrc}
                               alt={item.nameNe}
+                              width={48}
+                              height={48}
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = getCropIconUrl(item.nameNe, item.categoryNe, item.code);

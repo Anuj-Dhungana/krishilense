@@ -75,6 +75,8 @@ export default function PwaRegistrar() {
         <img
           src="/icons/icon-192x192.png"
           alt="KrishiLens"
+          width={48}
+          height={48}
           className="h-12 w-12 shrink-0 rounded-xl shadow-xs"
         />
         <div className="min-w-0 flex-1">

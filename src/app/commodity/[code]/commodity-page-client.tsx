@@ -80,6 +80,8 @@ export default function CommodityPageClient({
             <img
               src={commodity.imageUrl || getCropIconUrl(commodity.nameNe, commodity.categoryNe, commodity.code)}
               alt={commodityName}
+              width={64}
+              height={64}
               className="h-full w-full object-cover"
             />
           </div>

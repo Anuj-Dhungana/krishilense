@@ -283,6 +283,8 @@ export default function HomeClient({
                         <img
                           src={item.image_url || getCropIconUrl(item.commodity_name_ne, item.category_ne, item.commodity_code)}
                           alt={item.commodity_name_ne}
+                          width={48}
+                          height={48}
                           className="mx-auto h-12 w-12 rounded-lg object-cover"
                           loading="lazy"
                         />
