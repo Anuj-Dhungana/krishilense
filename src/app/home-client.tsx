@@ -284,15 +284,19 @@ export default function HomeClient({
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/75 transition-colors">
                       <td className="py-3 px-4 text-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={getCommodityThumbnail(item.image_url, item.commodity_name_ne, item.category_ne, item.commodity_code, 96)}
-                          alt={item.commodity_name_ne}
-                          width={48}
-                          height={48}
-                          className="mx-auto h-12 w-12 rounded-lg object-cover"
-                          loading="lazy"
-                        />
+                        {(() => {
+                          const thumbSrc = getCommodityThumbnail(item.image_url, item.commodity_name_ne, item.category_ne, item.commodity_code, 96);
+                          return (
+                            <Image
+                              src={thumbSrc}
+                              alt={item.commodity_name_ne}
+                              width={48}
+                              height={48}
+                              unoptimized={thumbSrc.startsWith("data:")}
+                              className="mx-auto h-12 w-12 rounded-lg object-cover"
+                            />
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 font-medium text-slate-900">
                         <Link

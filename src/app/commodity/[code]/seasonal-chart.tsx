@@ -37,8 +37,8 @@ export default function SeasonalChart({ data }: { data: MonthData[] }) {
   }));
 
   return (
-    <div className="w-full h-72 sm:h-80">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full" style={{ height: "300px", minHeight: "300px" }}>
+      <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
           <XAxis

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { BarChart3, MapPin, Sprout } from "lucide-react";
 import { useLanguage, CATEGORY_NE_TO_KEY } from "../../../lib/i18n";
 import { getCropIconUrl, getCommodityThumbnail } from "../../../lib/crop-icons";
@@ -76,14 +77,19 @@ export default function CommodityPageClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
         <div className="flex items-center gap-3">
           <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={getCommodityThumbnail(commodity.imageUrl, commodity.nameNe, commodity.categoryNe, commodity.code, 128)}
-              alt={commodityName}
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-            />
+            {(() => {
+              const thumbSrc = getCommodityThumbnail(commodity.imageUrl, commodity.nameNe, commodity.categoryNe, commodity.code, 128);
+              return (
+                <Image
+                  src={thumbSrc}
+                  alt={commodityName}
+                  width={64}
+                  height={64}
+                  unoptimized={thumbSrc.startsWith("data:")}
+                  className="h-full w-full object-cover"
+                />
+              );
+            })()}
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">

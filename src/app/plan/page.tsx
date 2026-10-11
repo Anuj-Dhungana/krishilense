@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   Activity,
   ArrowRight,
@@ -117,15 +118,19 @@ export default function PlanPage() {
       >
         <div className="flex flex-col sm:flex-row">
           <div className="relative h-56 shrink-0 bg-emerald-50 sm:h-auto sm:w-56 overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={getCommodityThumbnail(item.imageUrl, item.cropNameNe, item.varietyNameNe, item.commodityCode, 224)}
-              alt={cropName}
-              width={224}
-              height={224}
-              className="h-full min-h-48 w-full object-cover transition-transform duration-300 hover:scale-105"
-              loading="lazy"
-            />
+            {(() => {
+              const thumbSrc = getCommodityThumbnail(item.imageUrl, item.cropNameNe, item.varietyNameNe, item.commodityCode, 224);
+              return (
+                <Image
+                  src={thumbSrc}
+                  alt={cropName}
+                  width={224}
+                  height={224}
+                  unoptimized={thumbSrc.startsWith("data:")}
+                  className="h-full min-h-48 w-full object-cover transition-transform duration-300 hover:scale-105"
+                />
+              );
+            })()}
             <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold shadow-sm ${badgeColor}`}>
               {badgeText}
             </span>
@@ -323,16 +328,19 @@ export default function PlanPage() {
           </div>
 
           <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
-            {topRecommendation?.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={getCommodityThumbnail(topRecommendation.imageUrl, topRecommendation.cropNameNe, topRecommendation.varietyNameNe, topRecommendation.commodityCode, 96)}
-                alt={topRecommendationName || ""}
-                width={40}
-                height={40}
-                className="h-10 w-10 shrink-0 rounded-lg object-cover border border-emerald-200"
-              />
-            ) : (
+            {topRecommendation?.imageUrl ? (() => {
+              const thumbSrc = getCommodityThumbnail(topRecommendation.imageUrl, topRecommendation.cropNameNe, topRecommendation.varietyNameNe, topRecommendation.commodityCode, 96);
+              return (
+                <Image
+                  src={thumbSrc}
+                  alt={topRecommendationName || ""}
+                  width={40}
+                  height={40}
+                  unoptimized={thumbSrc.startsWith("data:")}
+                  className="h-10 w-10 shrink-0 rounded-lg object-cover border border-emerald-200"
+                />
+              );
+            })() : (
               <Star className="h-5 w-5 shrink-0 fill-emerald-600 text-emerald-600" aria-hidden="true" />
             )}
             <div>
@@ -401,15 +409,19 @@ export default function PlanPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
                 {results.cohort_d.map((d, idx) => (
                   <div key={idx} className="flex items-center gap-3 rounded-xl border border-[#DCEBE4] bg-white p-3 shadow-xs">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={getCommodityThumbnail(d.imageUrl, d.cropNameNe, d.varietyNameNe, d.commodityCode || "", 96)}
-                      alt={d.cropNameNe}
-                      width={48}
-                      height={48}
-                      className="h-12 w-12 shrink-0 rounded-lg object-cover bg-emerald-50"
-                      loading="lazy"
-                    />
+                    {(() => {
+                      const thumbSrc = getCommodityThumbnail(d.imageUrl, d.cropNameNe, d.varietyNameNe, d.commodityCode || "", 96);
+                      return (
+                        <Image
+                          src={thumbSrc}
+                          alt={d.cropNameNe}
+                          width={48}
+                          height={48}
+                          unoptimized={thumbSrc.startsWith("data:")}
+                          className="h-12 w-12 shrink-0 rounded-lg object-cover bg-emerald-50"
+                        />
+                      );
+                    })()}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-bold text-slate-900">{d.cropNameNe}</p>
                       <p className="truncate text-[11px] text-slate-500">{d.varietyNameNe}</p>
