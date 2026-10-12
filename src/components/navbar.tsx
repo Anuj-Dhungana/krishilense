@@ -10,6 +10,7 @@ import {
   Menu,
   Sprout,
   Store,
+  TrendingUp,
   Wheat,
   X,
 } from "lucide-react";
@@ -21,9 +22,11 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   // Close mobile menu on route change
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsOpen(false);
-  }, [pathname]);
+  }
 
   // Prevent background scroll when mobile menu is open
   useEffect(() => {
@@ -40,31 +43,32 @@ export default function Navbar() {
   const navLinks = [
     { href: "/", label: t("nav_daily_market"), icon: Store },
     { href: "/plan", label: t("nav_what_to_grow"), icon: Sprout },
+    { href: "/charts", label: t("nav_charts"), icon: TrendingUp },
     { href: "/compare", label: t("nav_comparison"), icon: BarChart3 },
     { href: "/methodology", label: t("nav_methodology"), icon: BookOpen },
   ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-emerald-100/80 bg-white/95 shadow-xs backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
         {/* Logo & Brand */}
-        <Link href="/" className="flex items-center space-x-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 shadow-xs ring-1 ring-emerald-200/60">
+        <Link href="/" className="flex items-center space-x-2.5 shrink-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 shadow-xs ring-1 ring-emerald-200/60">
             <Wheat className="h-6 w-6 text-emerald-700" aria-hidden="true" />
           </div>
           <div>
-            <span className="block text-lg font-extrabold tracking-tight text-emerald-950 sm:text-xl">
+            <span className="block text-base sm:text-lg lg:text-xl font-extrabold tracking-tight text-emerald-950">
               {t("brand_name")}
             </span>
-            <p className="text-[10px] font-medium text-slate-500 sm:text-[11px]">
+            <p className="hidden xl:block text-[10px] font-medium text-slate-500">
               {t("brand_tagline")}
             </p>
           </div>
         </Link>
 
-        {/* Desktop Navigation Menu (hidden on mobile, visible on md+) */}
-        <div className="hidden items-center gap-3 md:flex">
-          <nav className="flex items-center space-x-1 text-sm font-medium">
+        {/* Desktop Navigation Menu (hidden on mobile/tablet, visible on lg+) */}
+        <div className="hidden items-center gap-2 xl:gap-3 lg:flex">
+          <nav className="flex items-center gap-1 xl:gap-1.5 text-xs xl:text-sm font-medium">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -72,14 +76,14 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 transition-colors ${
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 xl:px-3.5 py-2 transition-colors ${
                     isActive
                       ? "border border-emerald-200 bg-emerald-50 font-bold text-emerald-900 shadow-2xs"
                       : "text-slate-600 hover:bg-slate-100 hover:text-emerald-700"
                   }`}
                 >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                  {link.label}
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>{link.label}</span>
                 </Link>
               );
             })}
@@ -90,16 +94,16 @@ export default function Navbar() {
             id="lang-toggle-btn"
             onClick={toggleLang}
             title={lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
             aria-label="Toggle language"
           >
-            <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+            <Languages className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>{t("lang_switch_label")}</span>
           </button>
         </div>
 
         {/* Mobile Action Controls (Lang Toggle + Hamburger Menu) */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <button
             onClick={toggleLang}
             title={lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}
@@ -124,7 +128,7 @@ export default function Navbar() {
       {/* Mobile Drawer Dropdown & Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-x-0 top-[65px] bottom-0 z-40 bg-slate-900/40 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+          className="fixed inset-x-0 top-[65px] bottom-0 z-40 bg-slate-900/40 backdrop-blur-xs lg:hidden animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
         >
           <div

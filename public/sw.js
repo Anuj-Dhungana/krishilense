@@ -1,15 +1,14 @@
 // KrishiLens Nepal — Progressive Web App Service Worker
-const CACHE_NAME = 'krishilens-v1';
+const CACHE_NAME = 'krishilens-v2';
 
 const STATIC_ASSETS = [
-  '/',
   '/manifest.webmanifest',
   '/favicon.ico',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/icons/apple-touch-icon.png',
-  '/banner.jpg',
-  '/banner%20of%20what%20to%20grow.png',
+  '/banner.webp',
+  '/banner-what-to-grow.webp',
 ];
 
 // Install: Pre-cache core app shell

@@ -16,18 +16,35 @@ export default function PwaRegistrar() {
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    // 1. Register Service Worker
+    // 1. Service Worker Lifecycle
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((reg) => {
-            console.log("[PWA] Service Worker registered:", reg.scope);
-          })
-          .catch((err) => {
-            console.warn("[PWA] Service Worker registration failed:", err);
+      if (process.env.NODE_ENV !== "production") {
+        // In local development, unregister any active service worker and clear stale caches
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister();
+          }
+        });
+        if ("caches" in window) {
+          caches.keys().then((keys) => {
+            for (const key of keys) {
+              caches.delete(key);
+            }
           });
-      });
+        }
+      } else {
+        // In production, register the service worker for PWA functionality
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((reg) => {
+              console.log("[PWA] Service Worker registered:", reg.scope);
+            })
+            .catch((err) => {
+              console.warn("[PWA] Service Worker registration failed:", err);
+            });
+        });
+      }
     }
 
     // 2. Listen for BeforeInstallPrompt event
