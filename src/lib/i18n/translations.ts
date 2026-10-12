@@ -27,8 +27,41 @@ export const translations = {
   // ============================================================================
   nav_daily_market: { ne: "दैनिक बजार", en: "Daily Market" },
   nav_what_to_grow: { ne: "के रोप्ने?", en: "What to Grow?" },
+  nav_charts: { ne: "बाली चार्ट (Charts)", en: "Crop Charts" },
   nav_comparison: { ne: "बजार तुलना", en: "Market Comparison" },
   nav_methodology: { ne: "विधि तथा स्रोत", en: "Methodology & Sources" },
+
+  // ============================================================================
+  // CHARTS HUB
+  // ============================================================================
+  charts_page_title: {
+    ne: "बाली चार्ट तथा बजार विश्लेषण",
+    en: "Crop Charts & Market Analytics",
+  },
+  charts_page_subtitle: {
+    ne: "नेपालका १२ वटै थोक बजारहरूको १२ महिने मौसमी चक्र, बाली पात्रो र दैनिक मूल्य उतारचढाव ट्रेन्ड",
+    en: "12-month seasonal patterns, crop calendars & daily price fluctuation trends across all 12 wholesale markets",
+  },
+  charts_select_crop: {
+    ne: "बाली छान्नुहोस्",
+    en: "Select Crop",
+  },
+  charts_select_market: {
+    ne: "थोक बजार",
+    en: "Wholesale Market",
+  },
+  charts_compare_btn: {
+    ne: "सबै बजारमा तुलना गर्नुहोस्",
+    en: "Compare Across All Markets",
+  },
+  charts_total_available: {
+    ne: "उपलब्ध",
+    en: "Available",
+  },
+  charts_not_found: {
+    ne: "छानिएको बाली फेला परेन। कृपया माथिको सूचीबाट अर्को बाली छान्नुहोस्।",
+    en: "Selected crop was not found. Please choose another crop from the list above.",
+  },
 
   // ============================================================================
   // FOOTER
@@ -243,8 +276,8 @@ export const translations = {
   commodity_max_desc: { ne: "उच्चतम कारोबार दर", en: "Highest trading rate" },
 
   // Intelligence Tabs
-  tab_seasonal: { ne: "📅 १२ महिनाको मौसमी चक्र", en: "📅 12-Month Seasonal Cycle" },
-  tab_daily: { ne: "📈 दैनिक मूल्य उतारचढाव", en: "📈 Daily Price Trend" },
+  tab_seasonal: { ne: "१२ महिनाको मौसमी चक्र", en: "12-Month Seasonal Cycle" },
+  tab_daily: { ne: "दैनिक मूल्य उतारचढाव", en: "Daily Price Trend" },
   tab_seasonal_status: { ne: "१० वर्षे ऐतिहासिक आधार", en: "10-Year Historical Base" },
   tab_daily_status_prefix: { ne: "पछिल्लो", en: "Last" },
   tab_daily_status_suffix: { ne: "दिनको कारोबार", en: "days of trading" },
@@ -264,7 +297,7 @@ export const translations = {
     ne: "यो वस्तु कालिमाटीको ऐतिहासिक फलफूल तथा तरकारी बोर्डमा समावेश नभएको वा नयाँ सूचीकृत भएको कारण १० वर्षे मौसमी चक्र उपलब्ध छैन।",
     en: "This commodity is either not included in Kalimati's historical records or is newly listed, so 10-year seasonal cycle is unavailable.",
   },
-  seasonal_view_daily_btn: { ne: "📈 हालैको दैनिक मूल्य उतारचढाव हेर्नुहोस् ➔", en: "📈 View Recent Daily Price Trends ➔" },
+  seasonal_view_daily_btn: { ne: "हालैको दैनिक मूल्य उतारचढाव हेर्नुहोस् ➔", en: "View Recent Daily Price Trends ➔" },
 
   // Daily Trend
   daily_title: { ne: "हालैको दैनिक मूल्य उतारचढाव", en: "Recent Daily Price Fluctuation Trend" },

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Info, LineChart } from "lucide-react";
+import { CalendarDays, Info, LineChart } from "lucide-react";
 import { useLanguage } from "../../../lib/i18n";
 import CropCalendarCard from "./crop-calendar-card";
 
@@ -76,6 +76,7 @@ export default function IntelligenceTabs({
                 : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
             }`}
           >
+            <CalendarDays className="mr-1.5 inline-block h-4 w-4 align-text-bottom" aria-hidden="true" />
             {t("tab_seasonal")}
           </button>
 
@@ -87,6 +88,7 @@ export default function IntelligenceTabs({
                 : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
             }`}
           >
+            <LineChart className="mr-1.5 inline-block h-4 w-4 align-text-bottom" aria-hidden="true" />
             {t("tab_daily")}
           </button>
         </div>
@@ -135,6 +137,7 @@ export default function IntelligenceTabs({
                 onClick={() => setActiveTab("daily")}
                 className="inline-block px-4 py-2 bg-emerald-50 text-emerald-800 font-bold rounded-xl text-xs hover:bg-emerald-100 transition-colors border border-emerald-200"
               >
+                <LineChart className="mr-1.5 inline-block h-4 w-4 align-text-bottom" aria-hidden="true" />
                 {t("seasonal_view_daily_btn")}
               </button>
             </div>
