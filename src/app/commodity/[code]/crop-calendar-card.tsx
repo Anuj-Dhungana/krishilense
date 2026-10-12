@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarDays } from "lucide-react";
 import { useLanguage } from "../../../lib/i18n";
 
 interface MonthOpportunity {
@@ -37,7 +38,8 @@ export default function CropCalendarCard({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
         <div>
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <span>📅</span> {t("calendar_title")}
+            <CalendarDays className="h-5 w-5 text-emerald-700" aria-hidden="true" />
+            {t("calendar_title")}
           </h2>
           <p className="text-xs text-slate-500">{t("calendar_desc")}</p>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { Info, LineChart } from "lucide-react";
 import { useLanguage } from "../../../lib/i18n";
 import CropCalendarCard from "./crop-calendar-card";
 
@@ -125,7 +126,7 @@ export default function IntelligenceTabs({
             </>
           ) : (
             <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-3">
-              <span className="text-3xl">ℹ️</span>
+              <Info className="mx-auto h-8 w-8 text-slate-400" aria-hidden="true" />
               <h3 className="font-bold text-slate-800 text-sm">{t("seasonal_no_data")}</h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
                 {t("seasonal_no_data_desc")}
@@ -147,7 +148,8 @@ export default function IntelligenceTabs({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
             <div>
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span>📈</span> {t("daily_title")}
+              <LineChart className="h-5 w-5 text-emerald-700" aria-hidden="true" />
+              {t("daily_title")}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">{t("daily_desc")}</p>
             </div>
@@ -162,7 +164,7 @@ export default function IntelligenceTabs({
 
           {/* Notice Box */}
           <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 leading-relaxed flex items-start gap-2">
-            <span className="text-sm">ℹ</span>
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
             <span>
               <strong>{t("daily_notice_label")}</strong> {t("daily_notice")}
             </span>
