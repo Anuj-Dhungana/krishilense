@@ -186,7 +186,3 @@ public/             Static images and assets
 ## Data sources
 
 Market prices are sourced from the Agriculture Market Price Information System (AMPIS). The application also references historical market data, the Kalimati Board, and Agriculture Information and Training Centre (AITC) methodology where applicable.
-
-## License
-
-This project does not currently declare a public software license. Contact the repository owner before redistributing or reusing the source.
